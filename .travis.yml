@@ -1,0 +1,24 @@
+language: go
+
+go:
+  - "1.10.x"
+  - "1.11.x"
+
+jobs:
+  include:
+    - stage: Build and push image
+      services:
+        - docker
+      install: skip
+      before_script:
+        - docker build -t tomochain/proxy .
+      script:
+        - echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
+        - docker tag tomochain/proxy tomochain/proxy:latest
+        - docker push tomochain/proxy:latest
+        - docker tag tomochain/proxy tomochain/proxy:$TRAVIS_BUILD_ID
+        - docker push tomochain/proxy:$TRAVIS_BUILD_ID
+
+stages:
+  - name: Build and push image
+    if: type != pull_request AND branch = master AND tag IS blank AND repo = tomochain/rpc-proxy
