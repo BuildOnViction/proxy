@@ -1,0 +1,4 @@
+{
+    "masternode": ["testnet.tomochain.com"],
+    "fullnode": ["testnet.tomochain.com"]
+}
