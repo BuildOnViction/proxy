@@ -21,4 +21,4 @@ jobs:
 
 stages:
   - name: Build and push image
-    if: type != pull_request AND branch = master AND tag IS blank AND repo = tomochain/rpc-proxy
+    if: type != pull_request AND branch = master AND tag IS blank AND repo = tomochain/proxy

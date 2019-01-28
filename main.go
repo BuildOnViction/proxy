@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/tomochain/rpc-proxy/config"
+	"github.com/tomochain/proxy/config"
 	"net/http"
 )
 
