@@ -1,4 +1,6 @@
+sudo: required
 language: go
+go_import_path: github.com/tomochain/proxy
 
 go:
   - "1.10.x"
