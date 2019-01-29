@@ -1,6 +1,5 @@
 sudo: required
 language: go
-go_import_path: github.com/tomochain/proxy
 
 go:
   - "1.10.x"
@@ -13,8 +12,9 @@ jobs:
         - docker
       install: skip
       before_script:
-        - docker build -t tomochain/proxy .
+        - make
       script:
+        - docker build -t tomochain/proxy .
         - echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
         - docker tag tomochain/proxy tomochain/proxy:latest
         - docker push tomochain/proxy:latest
