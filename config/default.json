@@ -1,4 +1,4 @@
 {
-    "masternode": ["testnet.tomochain.com"],
-    "fullnode": ["testnet.tomochain.com"]
+    "masternode": ["https://testnet.tomochain.com", "https://rpc.tomochain.com"],
+    "fullnode": ["https://testnet.tomochain.com", "https://rpc.tomochain.com"]
 }

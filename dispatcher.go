@@ -1,6 +1,8 @@
 package main
 
-import "fmt"
+import (
+	log "github.com/sirupsen/logrus"
+)
 
 var WorkerQueue chan chan WorkRequest
 
@@ -10,7 +12,7 @@ func StartDispatcher(nworkers int) {
 
 	// Now, create all of our workers.
 	for i := 0; i < nworkers; i++ {
-		fmt.Println("Starting worker", i+1)
+		log.Debugf("Starting worker %d", i+1)
 		worker := NewWorker(i+1, WorkerQueue)
 		worker.Start()
 	}
@@ -19,11 +21,9 @@ func StartDispatcher(nworkers int) {
 		for {
 			select {
 			case work := <-WorkQueue:
-				fmt.Println("Received work request")
 				go func() {
 					worker := <-WorkerQueue
 
-					fmt.Println("Dispatching work request")
 					worker <- work
 				}()
 			}

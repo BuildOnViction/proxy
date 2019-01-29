@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 type Backend struct {
-	Masternode []string
-	Fullnode   []string
+	Masternode []*url.URL
+	Fullnode   []*url.URL
 }
 
 type Pointer struct {
@@ -21,7 +22,7 @@ type JsonRpc struct {
 }
 
 var (
-	backend = Backend{[]string{"testnet.tomochain.com"}, []string{"testnet.tomochain.com"}}
+	backend Backend
 	pointer = Pointer{0, 0}
 )
 
@@ -32,12 +33,12 @@ func point(p int, max int) int {
 	return p + 1
 }
 
-func route(r *http.Request) (string, error) {
+func route(r *http.Request) (*url.URL, error) {
 	decoder := json.NewDecoder(r.Body)
 	var b JsonRpc
 	err := decoder.Decode(&b)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if b.Method == "eth_sendRawTransaction" {
 		max := len(backend.Masternode) - 1
@@ -55,8 +56,9 @@ func ServeHTTP(wr http.ResponseWriter, r *http.Request) {
 	var req *http.Request
 	client := &http.Client{}
 
-	r.URL.Host, _ = route(r)
-	r.URL.Scheme = "https"
+	url, _ := route(r)
+	r.URL.Host = url.Host
+	r.URL.Scheme = url.Scheme
 
 	req, err = http.NewRequest(r.Method, r.URL.String(), r.Body)
 	for name, value := range r.Header {

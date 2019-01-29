@@ -3,8 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"github.com/tomochain/proxy/config"
 	"net/http"
+	"net/url"
 )
 
 var (
@@ -17,19 +19,34 @@ func main() {
 	// Parse the command-line flags.
 	flag.Parse()
 
+	// setup config
 	config.Init(*ConfigFile)
 	c := config.GetConfig()
-	backend.Masternode = c.Masternode
-	backend.Fullnode = c.Fullnode
-	fmt.Println(*ConfigFile)
+	var urls []*url.URL
+	for i := 0; i < len(c.Masternode); i++ {
+		url, _ := url.Parse(c.Masternode[i])
+		urls = append(urls, url)
+	}
+	backend.Masternode = urls
+	for i := 0; i < len(c.Fullnode); i++ {
+		url, _ := url.Parse(c.Fullnode[i])
+		urls = append(urls, url)
+	}
+	backend.Fullnode = urls
 
-	fmt.Println("Starting the dispatcher")
+	// setup log
+	log.SetFormatter(&log.TextFormatter{
+		DisableColors: false,
+		FullTimestamp: true,
+	})
+
+	log.Debug("Starting the dispatcher")
 	StartDispatcher(*NWorkers)
 
-	fmt.Println("Registering the collector")
+	log.Debug("Registering the collector")
 	http.HandleFunc("/", Collector)
 
-	fmt.Println("HTTP server listening on", *HTTPAddr)
+	log.Infof("HTTP server listening on %s", *HTTPAddr)
 	if err := http.ListenAndServe(*HTTPAddr, nil); err != nil {
 		fmt.Println(err.Error())
 	}

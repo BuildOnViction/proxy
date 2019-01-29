@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -40,17 +39,12 @@ func (w Worker) Start() {
 				ServeHTTP(work.W, work.R)
 
 			case <-w.QuitChan:
-				// We have been asked to stop.
-				fmt.Printf("worker%d stopping\n", w.ID)
 				return
 			}
 		}
 	}()
 }
 
-// Stop tells the worker to stop listening for work requests.
-//
-// Note that the worker will only stop *after* it has finished its work.
 func (w Worker) Stop() {
 	go func() {
 		w.QuitChan <- true
