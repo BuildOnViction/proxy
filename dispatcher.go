@@ -1,8 +1,6 @@
 package main
 
-import (
-	log "github.com/sirupsen/logrus"
-)
+import ()
 
 var WorkerQueue chan chan WorkRequest
 
@@ -12,7 +10,7 @@ func StartDispatcher(nworkers int) {
 
 	// Now, create all of our workers.
 	for i := 0; i < nworkers; i++ {
-		log.Debugf("Starting worker %d", i+1)
+		// log.Debugf("Starting worker %d", i+1)
 		worker := NewWorker(i+1, WorkerQueue)
 		worker.Start()
 	}

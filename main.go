@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	log "github.com/sirupsen/logrus"
+	log "github.com/inconshreveable/log15"
 	"github.com/tomochain/proxy/config"
 	"net/http"
 	"net/url"
@@ -35,18 +35,15 @@ func main() {
 	backend.Fullnode = urls
 
 	// setup log
-	log.SetFormatter(&log.TextFormatter{
-		DisableColors: false,
-		FullTimestamp: true,
-	})
+	logger := log.New("module", "app/server")
 
-	log.Debug("Starting the dispatcher")
+	logger.Debug("Starting the dispatcher")
 	StartDispatcher(*NWorkers)
 
-	log.Debug("Registering the collector")
+	logger.Debug("Registering the collector")
 	http.HandleFunc("/", Collector)
 
-	log.Infof("HTTP server listening on %s", *HTTPAddr)
+	log.Info("HTTP server listening on", "addr", *HTTPAddr)
 	if err := http.ListenAndServe(*HTTPAddr, nil); err != nil {
 		fmt.Println(err.Error())
 	}
