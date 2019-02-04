@@ -28,6 +28,8 @@ func main() {
 		urls = append(urls, url)
 	}
 	backend.Masternode = urls
+
+    urls = []*url.URL{}
 	for i := 0; i < len(c.Fullnode); i++ {
 		url, _ := url.Parse(c.Fullnode[i])
 		urls = append(urls, url)

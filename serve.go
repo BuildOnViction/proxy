@@ -37,21 +37,20 @@ func route(r *http.Request) (*url.URL, error) {
 	decoder := json.NewDecoder(r.Body)
 	var b JsonRpc
     var url *url.URL
-    var index int
 	err := decoder.Decode(&b)
 	if err != nil {
 		return nil, err
 	}
 	if b.Method == "eth_sendRawTransaction" {
 		max := len(backend.Masternode) - 1
-		index = point(pointer.Masternode, max)
-		url = backend.Masternode[index]
-        log.Info("RPC masternode request", "method", b.Method, "index", index, "host", url.Host)
+		pointer.Masternode= point(pointer.Masternode, max)
+		url = backend.Masternode[pointer.Masternode]
+        log.Info("RPC masternode request", "method", b.Method, "index", pointer.Masternode, "host", url.Host)
 	} else {
         max := len(backend.Fullnode) - 1
-        index = point(pointer.Fullnode, max)
-	    url = backend.Fullnode[index]
-        log.Info("RPC fullnode request", "method", b.Method, "index", index, "host", url.Host)
+        pointer.Fullnode = point(pointer.Fullnode, max)
+	    url = backend.Fullnode[pointer.Fullnode]
+        log.Info("RPC fullnode request", "method", b.Method, "index", pointer.Fullnode, "max", max, "host", url.Host)
     }
     return url, err
 }
