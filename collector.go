@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"net/http"
+	log "github.com/inconshreveable/log15"
 )
 
 // A buffered channel that we can send work requests on.
@@ -29,7 +29,7 @@ func Collector(w http.ResponseWriter, r *http.Request) {
 
 	// Push the work onto the queue.
 	WorkQueue <- work
-	fmt.Println("Work request queued")
+	log.Debug("Work request queued")
 
 	for {
 		select {

@@ -35,12 +35,11 @@ func main() {
 	backend.Fullnode = urls
 
 	// setup log
-	logger := log.New("module", "app/server")
+	log.Debug("Starting the dispatcher")
 
-	logger.Debug("Starting the dispatcher")
 	StartDispatcher(*NWorkers)
 
-	logger.Debug("Registering the collector")
+	log.Debug("Registering the collector")
 	http.HandleFunc("/", Collector)
 
 	log.Info("HTTP server listening on", "addr", *HTTPAddr)

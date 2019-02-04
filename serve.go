@@ -2,9 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/url"
+    log "github.com/inconshreveable/log15"
 )
 
 type Backend struct {
@@ -36,18 +36,24 @@ func point(p int, max int) int {
 func route(r *http.Request) (*url.URL, error) {
 	decoder := json.NewDecoder(r.Body)
 	var b JsonRpc
+    var url *url.URL
+    var index int
 	err := decoder.Decode(&b)
 	if err != nil {
 		return nil, err
 	}
 	if b.Method == "eth_sendRawTransaction" {
 		max := len(backend.Masternode) - 1
-		i := point(pointer.Masternode, max)
-		return backend.Masternode[i], err
-	}
-	max := len(backend.Fullnode) - 1
-	i := point(pointer.Fullnode, max)
-	return backend.Fullnode[i], err
+		index = point(pointer.Masternode, max)
+		url = backend.Masternode[index]
+        log.Info("RPC masternode request", "method", b.Method, "index", index, "host", url.Host)
+	} else {
+        max := len(backend.Fullnode) - 1
+        index = point(pointer.Fullnode, max)
+	    url = backend.Fullnode[index]
+        log.Info("RPC fullnode request", "method", b.Method, "index", index, "host", url.Host)
+    }
+    return url, err
 }
 
 func ServeHTTP(wr http.ResponseWriter, r *http.Request) {
@@ -69,7 +75,7 @@ func ServeHTTP(wr http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(wr, err.Error(), http.StatusInternalServerError)
-		fmt.Println(err)
+		log.Error("Backend error", "err", err)
 	}
 
 	connChannel <- &HttpConnection{r, resp}
