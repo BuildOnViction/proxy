@@ -33,13 +33,13 @@ func point(p int, max int) int {
 	return p + 1
 }
 
-func route(r *http.Request) (*url.URL, error) {
+func route(r *http.Request) (*url.URL, string, error) {
 	decoder := json.NewDecoder(r.Body)
 	var b JsonRpc
     var url *url.URL
 	err := decoder.Decode(&b)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	if b.Method == "eth_sendRawTransaction" {
 		max := len(backend.Masternode) - 1
@@ -52,7 +52,7 @@ func route(r *http.Request) (*url.URL, error) {
 	    url = backend.Fullnode[pointer.Fullnode]
         log.Info("RPC fullnode request", "method", b.Method, "index", pointer.Fullnode, "max", max, "host", url.Host)
     }
-    return url, err
+    return url, b.Method, err
 }
 
 func ServeHTTP(wr http.ResponseWriter, r *http.Request) {
@@ -61,7 +61,7 @@ func ServeHTTP(wr http.ResponseWriter, r *http.Request) {
 	var req *http.Request
 	client := &http.Client{}
 
-	url, _ := route(r)
+	url, method, _ := route(r)
 	r.URL.Host = url.Host
 	r.URL.Scheme = url.Scheme
 
@@ -74,7 +74,7 @@ func ServeHTTP(wr http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(wr, err.Error(), http.StatusInternalServerError)
-		log.Error("Backend error", "err", err)
+		log.Error("Backend error", "url", r.URL.String(), "method", method, "err", err)
 	}
 
 	connChannel <- &HttpConnection{r, resp}
