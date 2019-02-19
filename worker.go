@@ -1,9 +1,9 @@
 package main
 
 import (
+	log "github.com/inconshreveable/log15"
 	"io"
 	"net/http"
-	log "github.com/inconshreveable/log15"
 )
 
 type WorkRequest struct {
@@ -46,6 +46,7 @@ func Collector(w http.ResponseWriter, r *http.Request) {
 				}
 				w.WriteHeader(conn.Response.StatusCode)
 				io.Copy(w, conn.Response.Body)
+				defer conn.Response.Body.Close()
 			} else {
 				w.WriteHeader(http.StatusOK)
 			}
