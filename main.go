@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/hashicorp/golang-lru"
 	log "github.com/inconshreveable/log15"
 	"github.com/tomochain/proxy/config"
 	"net/http"
@@ -13,6 +14,7 @@ var (
 	NWorkers   = flag.Int("n", 16, "The number of workers to start")
 	HTTPAddr   = flag.String("http", "0.0.0.0:3000", "Address to listen for HTTP requests on")
 	ConfigFile = flag.String("config", "./config/default.json", "Path to config file")
+	CacheLimit = flag.Int("cache", 100000, "Cache limit")
 )
 
 func main() {
@@ -29,7 +31,7 @@ func main() {
 	}
 	backend.Masternode = urls
 
-    urls = []*url.URL{}
+	urls = []*url.URL{}
 	for i := 0; i < len(c.Fullnode); i++ {
 		url, _ := url.Parse(c.Fullnode[i])
 		urls = append(urls, url)
@@ -38,6 +40,9 @@ func main() {
 
 	// setup log
 	log.Debug("Starting the dispatcher")
+
+	// Cache
+	cache, _ = lru.New(*CacheLimit)
 
 	StartDispatcher(*NWorkers)
 
