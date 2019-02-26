@@ -2,7 +2,7 @@
 if [ "$1" != "1" ]
 then
     echo Get data via proxy ...
-    for i in `seq 1 1`
+    for i in `seq 1 100`
     do 
         curl --trace-ascii /dev/stdout -sS -o /dev/null -X POST -H "Content-type:application/json" --data '{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params":["0x1b4", true],"id":4}' 'http://localhost:3000' & 
     done

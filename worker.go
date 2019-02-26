@@ -3,11 +3,11 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/hashicorp/golang-lru"
 	log "github.com/inconshreveable/log15"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 type WorkRequest struct {
@@ -31,8 +31,6 @@ var WorkerQueue chan chan WorkRequest
 var WorkQueue = make(chan WorkRequest, 100)
 
 var connChannel = make(HttpConnectionChannel)
-
-var cache *lru.Cache
 
 func route(r *http.Request) (*url.URL, string, string, error) {
 	body, _ := ioutil.ReadAll(r.Body)
@@ -66,10 +64,10 @@ func Collector(w http.ResponseWriter, r *http.Request) {
 	r.URL.Host = url.Host
 	r.URL.Scheme = url.Scheme
 
-	if c, ok := cache.Get(cacheKey); ok && cacheKey != "" {
+	if c := storage.Get(cacheKey); c != nil && cacheKey != "" {
 		log.Debug("Get from cache", "key", cacheKey)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(c.([]byte))
+		w.Write(c)
 		return
 	}
 
@@ -94,7 +92,11 @@ func Collector(w http.ResponseWriter, r *http.Request) {
 				}
 				w.WriteHeader(conn.Response.StatusCode)
 				body, _ := ioutil.ReadAll(conn.Response.Body)
-				cache.Add(cacheKey, body)
+
+				if d, err := time.ParseDuration(*CacheExpiration); err == nil {
+					storage.Set(cacheKey, body, d)
+				}
+
 				w.Write(body)
 				defer conn.Response.Body.Close()
 			} else {

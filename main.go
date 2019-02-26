@@ -3,19 +3,23 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/hashicorp/golang-lru"
 	log "github.com/inconshreveable/log15"
+	"github.com/tomochain/proxy/cache"
+	"github.com/tomochain/proxy/cache/lru"
 	"github.com/tomochain/proxy/config"
 	"net/http"
 	"net/url"
 )
 
 var (
-	NWorkers   = flag.Int("n", 16, "The number of workers to start")
-	HTTPAddr   = flag.String("http", "0.0.0.0:3000", "Address to listen for HTTP requests on")
-	ConfigFile = flag.String("config", "./config/default.json", "Path to config file")
-	CacheLimit = flag.Int("cache", 100000, "Cache limit")
+	NWorkers        = flag.Int("n", 16, "The number of workers to start")
+	HTTPAddr        = flag.String("http", "0.0.0.0:3000", "Address to listen for HTTP requests on")
+	ConfigFile      = flag.String("config", "./config/default.json", "Path to config file")
+	CacheLimit      = flag.Int("cacheLimit", 100000, "Cache limit")
+	CacheExpiration = flag.String("cacheExpiration", "2s", "Cache expiration")
 )
+
+var storage cache.Storage
 
 func main() {
 	// Parse the command-line flags.
@@ -42,7 +46,8 @@ func main() {
 	log.Debug("Starting the dispatcher")
 
 	// Cache
-	cache, _ = lru.New(*CacheLimit)
+	// cache, _ = lru.New(*CacheLimit)
+	storage, _ = lrucache.NewStorage(*CacheLimit)
 
 	StartDispatcher(*NWorkers)
 
