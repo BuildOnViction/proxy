@@ -43,7 +43,7 @@ func main() {
 	backend.Fullnode = urls
 
 	// setup log
-	log.Debug("Starting the dispatcher")
+	log.Debug("Starting the proxy", "workers", *NWorkers, "config", *ConfigFile)
 
 	// Cache
 	// cache, _ = lru.New(*CacheLimit)
@@ -51,7 +51,6 @@ func main() {
 
 	StartDispatcher(*NWorkers)
 
-	log.Debug("Registering the collector")
 	http.HandleFunc("/", Collector)
 
 	log.Info("HTTP server listening on", "addr", *HTTPAddr)
