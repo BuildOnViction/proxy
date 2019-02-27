@@ -45,13 +45,13 @@ func route(r *http.Request) (*url.URL, string, string, error) {
 		max := len(backend.Masternode) - 1
 		pointer.Masternode = point(pointer.Masternode, max)
 		url = backend.Masternode[pointer.Masternode]
-		log.Info("RPC masternode request", "method", b.Method, "index", pointer.Masternode, "host", url.Host)
+		log.Info("RPC request", "type", "masternode", "method", b.Method, "index", pointer.Masternode, "host", url.Host)
 		cacheKey = ""
 	} else {
 		max := len(backend.Fullnode) - 1
 		pointer.Fullnode = point(pointer.Fullnode, max)
 		url = backend.Fullnode[pointer.Fullnode]
-		log.Info("RPC fullnode request", "method", b.Method, "index", pointer.Fullnode, "max", max, "host", url.Host)
+		log.Info("RPC request", "type", "fullnode", "method", b.Method, "index", pointer.Fullnode, "max", max, "host", url.Host)
 	}
 	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 	return url, b.Method, cacheKey, err
@@ -59,13 +59,17 @@ func route(r *http.Request) (*url.URL, string, string, error) {
 
 func Collector(w http.ResponseWriter, r *http.Request) {
 
-	// TODO: https://goenning.net/2017/03/18/server-side-cache-go/
-	url, _, cacheKey, _ := route(r)
+	url, method, cacheKey, err := route(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadGateway)
+		return
+	}
+
 	r.URL.Host = url.Host
 	r.URL.Scheme = url.Scheme
 
 	if c := storage.Get(cacheKey); c != nil && cacheKey != "" {
-		log.Debug("Get from cache", "key", cacheKey)
+		log.Debug("Get from cache", "method", method, "key", cacheKey)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(c)
 		return
@@ -81,7 +85,7 @@ func Collector(w http.ResponseWriter, r *http.Request) {
 
 	// Push the work onto the queue.
 	WorkQueue <- work
-	log.Debug("Work request queued")
+	log.Debug("Work request queued", "method", method)
 
 	for {
 		select {
