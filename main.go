@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	log "github.com/inconshreveable/log15"
 	"github.com/tomochain/proxy/cache"
 	"github.com/tomochain/proxy/cache/lru"
@@ -51,10 +50,12 @@ func main() {
 
 	StartDispatcher(*NWorkers)
 
+	http.HandleFunc("/proxystatus", proxystatus)
+
 	http.HandleFunc("/", Collector)
 
 	log.Info("HTTP server listening on", "addr", *HTTPAddr)
 	if err := http.ListenAndServe(*HTTPAddr, nil); err != nil {
-		fmt.Println(err.Error())
+		log.Error("Failed start http server", "error", err.Error())
 	}
 }
