@@ -6,8 +6,10 @@ import (
 	"github.com/tomochain/proxy/cache"
 	"github.com/tomochain/proxy/cache/lru"
 	"github.com/tomochain/proxy/config"
+	"github.com/tomochain/proxy/healthcheck"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 var (
@@ -45,8 +47,20 @@ func main() {
 	log.Debug("Starting the proxy", "workers", *NWorkers, "config", *ConfigFile)
 
 	// Cache
-	// cache, _ = lru.New(*CacheLimit)
 	storage, _ = lrucache.NewStorage(*CacheLimit)
+
+	// Healthcheck
+	for {
+		<-time.After(2 * time.Second)
+		for i := 0; i < len(c.Fullnode); i++ {
+			url, _ := url.Parse(c.Fullnode[i])
+			go healthcheck.Run(url)
+		}
+		for i := 0; i < len(c.Masternode); i++ {
+			url, _ := url.Parse(c.Masternode[i])
+			go healthcheck.Run(url)
+		}
+	}
 
 	StartDispatcher(*NWorkers)
 
