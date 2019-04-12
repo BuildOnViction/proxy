@@ -15,15 +15,20 @@ type EthBlockNumber struct {
 }
 
 func Run(u *url.URL) {
-	log.Debug("Healthcheck test", "url", u.String())
+	var err error
+	var b EthBlockNumber
 
 	byt := []byte(`{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}`)
 	body := bytes.NewReader(byt)
-	resp, _ := http.Post(u.String(), "application/json", body)
-	var b EthBlockNumber
-	bd, _ := ioutil.ReadAll(resp.Body)
-	_ = json.Unmarshal(bd, &b)
-	bn, _ := hexutil.DecodeUint64(b.Result)
+	resp, err := http.Post(u.String(), "application/json", body)
+	bd, err := ioutil.ReadAll(resp.Body)
+	err = json.Unmarshal(bd, &b)
+	bn, err := hexutil.DecodeUint64(b.Result)
 	log.Debug("Body", "number", bn)
+	if err != nil {
+		log.Error("Healthcheck", "url", u.String(), "status", "NOK")
+	} else {
+		log.Debug("Healthcheck", "url", u.String(), "status", "OK")
+	}
 	defer resp.Body.Close()
 }
