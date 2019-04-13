@@ -14,6 +14,12 @@ type EthBlockNumber struct {
 	Result string
 }
 
+type EndpointState struct {
+    blockNumber uint64
+    count int
+}
+var es map[string]EndpointState = make(map[string]EndpointState)
+
 func Run(u *url.URL) {
 	var err error
 	var b EthBlockNumber
@@ -24,11 +30,19 @@ func Run(u *url.URL) {
 	bd, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bd, &b)
 	bn, err := hexutil.DecodeUint64(b.Result)
-	log.Debug("Body", "number", bn)
 	if err != nil {
 		log.Error("Healthcheck", "url", u.String(), "status", "NOK")
 	} else {
 		log.Debug("Healthcheck", "url", u.String(), "status", "OK")
 	}
+
+    // save state
+    if bn == es[u.String()].blockNumber {
+        c := es[u.String()].count + 1
+        es[u.String()] = EndpointState{ bn, c }
+    } else {
+        es[u.String()] = EndpointState{ bn, 1 }
+    }
+
 	defer resp.Body.Close()
 }
