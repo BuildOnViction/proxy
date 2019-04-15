@@ -50,21 +50,24 @@ func main() {
 	storage, _ = lrucache.NewStorage(*CacheLimit)
 
 	// Healthcheck
-	for {
-		<-time.After(2 * time.Second)
-		for i := 0; i < len(c.Fullnode); i++ {
-			url, _ := url.Parse(c.Fullnode[i])
-			go healthcheck.Run(url)
-		}
-		for i := 0; i < len(c.Masternode); i++ {
-			url, _ := url.Parse(c.Masternode[i])
-			go healthcheck.Run(url)
-		}
-	}
+    go func() {
+        for {
+            <-time.After(2 * time.Second)
+            for i := 0; i < len(c.Fullnode); i++ {
+                url, _ := url.Parse(c.Fullnode[i])
+                go healthcheck.Run(url)
+            }
+            for i := 0; i < len(c.Masternode); i++ {
+                url, _ := url.Parse(c.Masternode[i])
+                go healthcheck.Run(url)
+            }
+        }
+    }()
 
 	StartDispatcher(*NWorkers)
 
 	http.HandleFunc("/proxystatus", proxystatus)
+	http.HandleFunc("/endpointstatus", healthcheck.GetEndpointStatus)
 
 	http.HandleFunc("/", Collector)
 

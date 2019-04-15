@@ -15,9 +15,11 @@ type EthBlockNumber struct {
 }
 
 type EndpointState struct {
-    blockNumber uint64
-    count int
+    BlockNumber uint64 `json:"blockNumber"`
+    Count int `json:"count"`
+    Status string `json:"status"`
 }
+
 var es map[string]EndpointState = make(map[string]EndpointState)
 
 func Run(u *url.URL) {
@@ -30,19 +32,33 @@ func Run(u *url.URL) {
 	bd, err := ioutil.ReadAll(resp.Body)
 	err = json.Unmarshal(bd, &b)
 	bn, err := hexutil.DecodeUint64(b.Result)
-	if err != nil {
-		log.Error("Healthcheck", "url", u.String(), "status", "NOK")
-	} else {
-		log.Debug("Healthcheck", "url", u.String(), "status", "OK")
-	}
 
     // save state
-    if bn == es[u.String()].blockNumber {
-        c := es[u.String()].count + 1
-        es[u.String()] = EndpointState{ bn, c }
+    if bn == es[u.String()].BlockNumber {
+        c := es[u.String()].Count + 1
+        status := "OK"
+        if c > 10 {
+            status = "NOK"
+        }
+        es[u.String()] = EndpointState{ bn, c, status }
     } else {
-        es[u.String()] = EndpointState{ bn, 1 }
+        es[u.String()] = EndpointState{ bn, 1, "OK" }
     }
 
+	if err != nil {
+		log.Error("Healthcheck", "url", u.String(), "number", bn, "count", es[u.String()].Count, "status", "NOK")
+	} else {
+		log.Error("Healthcheck", "url", u.String(), "number", bn, "count", es[u.String()].Count, "status", es[u.String()].Status)
+	}
+
 	defer resp.Body.Close()
+}
+
+func GetEndpointStatus(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	data, _ := json.Marshal(es)
+	w.WriteHeader(http.StatusOK)
+	w.Write(data)
+	return
 }
