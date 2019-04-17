@@ -22,7 +22,7 @@ type EndpointState struct {
 
 var es map[string]EndpointState = make(map[string]EndpointState)
 
-func Run(u *url.URL) {
+func Run(u *url.URL) (*url.URL, bool) {
 	var err error
 	var b EthBlockNumber
 	var bn uint64
@@ -62,6 +62,12 @@ func Run(u *url.URL) {
 		log.Error("Healthcheck", "url", u.String(), "number", bn, "count", es[u.String()].Count, "status", "NOK")
 	} else {
 		log.Info("Healthcheck", "url", u.String(), "number", bn, "count", es[u.String()].Count, "status", "OK")
+	}
+
+	if es[u.String()].Status == "NOK" {
+		return u, false
+	} else {
+		return u, true
 	}
 
 }

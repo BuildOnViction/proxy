@@ -50,16 +50,55 @@ func main() {
 	storage, _ = lrucache.NewStorage(*CacheLimit)
 
 	// Healthcheck
+	hl := make(chan *url.URL)
+	nhl := make(chan *url.URL)
 	go func() {
 		for {
 			<-time.After(10 * time.Second)
 			for i := 0; i < len(c.Fullnode); i++ {
 				url, _ := url.Parse(c.Fullnode[i])
-				go healthcheck.Run(url)
+				go func() {
+					u, ok := healthcheck.Run(url)
+					if !ok {
+						nhl <- u
+					} else {
+						hl <- u
+					}
+
+				}()
 			}
 			for i := 0; i < len(c.Masternode); i++ {
 				url, _ := url.Parse(c.Masternode[i])
-				go healthcheck.Run(url)
+				go func() {
+					u, ok := healthcheck.Run(url)
+					if !ok {
+						nhl <- u
+					} else {
+						hl <- u
+					}
+				}()
+			}
+		}
+	}()
+
+	go func() {
+		for {
+			select {
+			case u := <-nhl:
+				for i := 0; i < len(backend.Masternode); i++ {
+					if u.String() == backend.Masternode[i].String() {
+						backend.Masternode = append(backend.Masternode[:i], backend.Masternode[i+1:]...)
+						break
+					}
+				}
+				for i := 0; i < len(backend.Fullnode); i++ {
+					if u.String() == backend.Fullnode[i].String() {
+						backend.Fullnode = append(backend.Fullnode[:i], backend.Fullnode[i+1:]...)
+						break
+					}
+				}
+			case u := <-hl:
+				log.Debug("Url OK", "url", u.String())
 			}
 		}
 	}()
