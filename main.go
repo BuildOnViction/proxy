@@ -50,19 +50,19 @@ func main() {
 	storage, _ = lrucache.NewStorage(*CacheLimit)
 
 	// Healthcheck
-    go func() {
-        for {
-            <-time.After(2 * time.Second)
-            for i := 0; i < len(c.Fullnode); i++ {
-                url, _ := url.Parse(c.Fullnode[i])
-                go healthcheck.Run(url)
-            }
-            for i := 0; i < len(c.Masternode); i++ {
-                url, _ := url.Parse(c.Masternode[i])
-                go healthcheck.Run(url)
-            }
-        }
-    }()
+	go func() {
+		for {
+			<-time.After(10 * time.Second)
+			for i := 0; i < len(c.Fullnode); i++ {
+				url, _ := url.Parse(c.Fullnode[i])
+				go healthcheck.Run(url)
+			}
+			for i := 0; i < len(c.Masternode); i++ {
+				url, _ := url.Parse(c.Masternode[i])
+				go healthcheck.Run(url)
+			}
+		}
+	}()
 
 	StartDispatcher(*NWorkers)
 
