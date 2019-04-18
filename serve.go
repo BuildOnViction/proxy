@@ -21,7 +21,7 @@ var (
 )
 
 func point(p int, max int) int {
-	if p == max {
+	if p >= max {
 		return 0
 	}
 	return p + 1

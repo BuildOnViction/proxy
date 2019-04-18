@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	log "github.com/inconshreveable/log15"
 	"io/ioutil"
 	"net/http"
@@ -44,12 +45,18 @@ func route(r *http.Request) (*url.URL, string, string, error) {
 	if b.Method == "eth_sendRawTransaction" {
 		max := len(backend.Masternode) - 1
 		pointer.Masternode = point(pointer.Masternode, max)
+		if max == 0 || pointer.Masternode > max {
+			return nil, "", "", errors.New("No endpoint")
+		}
 		url = backend.Masternode[pointer.Masternode]
 		log.Info("RPC request", "type", "masternode", "method", b.Method, "index", pointer.Masternode, "host", url.Host)
 		cacheKey = ""
 	} else {
 		max := len(backend.Fullnode) - 1
 		pointer.Fullnode = point(pointer.Fullnode, max)
+		if max == 0 || pointer.Fullnode > max {
+			return nil, "", "", errors.New("No endpoint")
+		}
 		url = backend.Fullnode[pointer.Fullnode]
 		log.Info("RPC request", "type", "fullnode", "method", b.Method, "index", pointer.Fullnode, "max", max, "host", url.Host)
 	}
