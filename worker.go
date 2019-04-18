@@ -45,7 +45,7 @@ func route(r *http.Request) (*url.URL, string, string, error) {
 	if b.Method == "eth_sendRawTransaction" {
 		max := len(backend.Masternode) - 1
 		pointer.Masternode = point(pointer.Masternode, max)
-		if max == 0 || pointer.Masternode > max {
+		if pointer.Masternode > max {
 			return nil, "", "", errors.New("No endpoint")
 		}
 		url = backend.Masternode[pointer.Masternode]
@@ -54,7 +54,7 @@ func route(r *http.Request) (*url.URL, string, string, error) {
 	} else {
 		max := len(backend.Fullnode) - 1
 		pointer.Fullnode = point(pointer.Fullnode, max)
-		if max == 0 || pointer.Fullnode > max {
+		if pointer.Fullnode > max {
 			return nil, "", "", errors.New("No endpoint")
 		}
 		url = backend.Fullnode[pointer.Fullnode]
@@ -68,6 +68,7 @@ func Collector(w http.ResponseWriter, r *http.Request) {
 
 	url, method, cacheKey, err := route(r)
 	if err != nil {
+		log.Error("RPC request", "method", method, "error", err)
 		w.WriteHeader(http.StatusBadGateway)
 		return
 	}

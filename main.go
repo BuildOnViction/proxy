@@ -20,16 +20,36 @@ var (
 	CacheExpiration = flag.String("cacheExpiration", "2s", "Cache expiration")
 )
 
+type arrEndpointFlags []string
+
+func (i *arrEndpointFlags) String() string {
+	return "List of endpoint urls"
+}
+
+func (i *arrEndpointFlags) Set(value string) error {
+	*i = append(*i, value)
+	return nil
+}
+
+var endpoints arrEndpointFlags
+
 var storage cache.Storage
 
 func main() {
 	// Parse the command-line flags.
+	flag.Var(&endpoints, "endpoint", "List of endpoint urls")
 	flag.Parse()
 
 	// setup config
 	config.Init(*ConfigFile)
 	c := config.GetConfig()
 	var urls []*url.URL
+	if len(endpoints) > 0 {
+		// overide config file
+		c.Fullnode = endpoints
+		c.Masternode = endpoints
+	}
+
 	for i := 0; i < len(c.Masternode); i++ {
 		url, _ := url.Parse(c.Masternode[i])
 		urls = append(urls, url)
