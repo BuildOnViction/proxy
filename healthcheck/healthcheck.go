@@ -59,7 +59,7 @@ func Run(u *url.URL) (*url.URL, bool) {
 	}
 
 	if err != nil || es[u.String()].Status == "NOK" {
-		log.Error("Healthcheck", "url", u.String(), "number", bn, "count", es[u.String()].Count, "status", "NOK")
+		log.Error("Healthcheck", "url", u.String(), "number", bn, "count", es[u.String()].Count, "status", "NOK", "err", err)
 	} else {
 		log.Info("Healthcheck", "url", u.String(), "number", bn, "count", es[u.String()].Count, "status", "OK")
 	}
