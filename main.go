@@ -50,8 +50,10 @@ func main() {
 	storage, _ = lrucache.NewStorage(*CacheLimit)
 
 	// Healthcheck
-	hl := make(chan *url.URL)
-	nhl := make(chan *url.URL)
+	hlm := make(chan *url.URL)
+	nhlm := make(chan *url.URL)
+	hlf := make(chan *url.URL)
+	nhlf := make(chan *url.URL)
 	go func() {
 		for {
 			<-time.After(10 * time.Second)
@@ -60,9 +62,9 @@ func main() {
 				go func() {
 					u, ok := healthcheck.Run(url)
 					if !ok {
-						nhl <- u
+						nhlm <- u
 					} else {
-						hl <- u
+						hlm <- u
 					}
 
 				}()
@@ -72,9 +74,9 @@ func main() {
 				go func() {
 					u, ok := healthcheck.Run(url)
 					if !ok {
-						nhl <- u
+						nhlf <- u
 					} else {
-						hl <- u
+						hlf <- u
 					}
 				}()
 			}
@@ -84,21 +86,42 @@ func main() {
 	go func() {
 		for {
 			select {
-			case u := <-nhl:
+			case u := <-nhlm:
 				for i := 0; i < len(backend.Masternode); i++ {
 					if u.String() == backend.Masternode[i].String() {
 						backend.Masternode = append(backend.Masternode[:i], backend.Masternode[i+1:]...)
 						break
 					}
 				}
+			case u := <-nhlf:
 				for i := 0; i < len(backend.Fullnode); i++ {
 					if u.String() == backend.Fullnode[i].String() {
 						backend.Fullnode = append(backend.Fullnode[:i], backend.Fullnode[i+1:]...)
 						break
 					}
 				}
-			case u := <-hl:
-				log.Debug("Url OK", "url", u.String())
+			case u := <-hlm:
+				b := true
+				for i := 0; i < len(backend.Masternode); i++ {
+					if u.String() == backend.Masternode[i].String() {
+						b = false
+						break
+					}
+				}
+				if b {
+					backend.Masternode = append(backend.Masternode, u)
+				}
+			case u := <-hlf:
+				b := true
+				for i := 0; i < len(backend.Fullnode); i++ {
+					if u.String() == backend.Fullnode[i].String() {
+						b = false
+						break
+					}
+				}
+				if b {
+					backend.Fullnode = append(backend.Fullnode, u)
+				}
 			}
 		}
 	}()
