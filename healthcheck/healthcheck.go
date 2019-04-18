@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+    "sync"
 )
 
 type EthBlockNumber struct {
@@ -20,7 +21,12 @@ type EndpointState struct {
 	Status      string `json:"status"`
 }
 
-var es map[string]EndpointState = make(map[string]EndpointState)
+type StateStore struct {
+    sync.Mutex
+    state map[string]EndpointState
+}
+
+var es *StateStore = &StateStore{ state: make(map[string]EndpointState) }
 
 func Run(u *url.URL) (*url.URL, bool) {
 	var err error
@@ -43,28 +49,30 @@ func Run(u *url.URL) (*url.URL, bool) {
 	}
 
 	// save state
-	if bn == es[u.String()].BlockNumber {
-		c := es[u.String()].Count + 1
+    es.Lock()
+	if bn == es.state[u.String()].BlockNumber {
+		c := es.state[u.String()].Count + 1
 		status := "OK"
 		if c > 10 {
 			status = "NOK"
 		}
-		es[u.String()] = EndpointState{bn, c, status}
+		es.state[u.String()] = EndpointState{bn, c, status}
 	} else {
-		es[u.String()] = EndpointState{bn, 1, "OK"}
+		es.state[u.String()] = EndpointState{bn, 1, "OK"}
 	}
 
 	if err != nil {
-		es[u.String()] = EndpointState{bn, 0, "NOK"}
+		es.state[u.String()] = EndpointState{bn, 0, "NOK"}
 	}
+    es.Unlock()
 
-	if err != nil || es[u.String()].Status == "NOK" {
-		log.Error("Healthcheck", "url", u.String(), "number", bn, "count", es[u.String()].Count, "status", "NOK", "err", err)
+	if err != nil || es.state[u.String()].Status == "NOK" {
+		log.Error("Healthcheck", "url", u.String(), "number", bn, "count", es.state[u.String()].Count, "status", "NOK", "err", err)
 	} else {
-		log.Info("Healthcheck", "url", u.String(), "number", bn, "count", es[u.String()].Count, "status", "OK")
+		log.Info("Healthcheck", "url", u.String(), "number", bn, "count", es.state[u.String()].Count, "status", "OK")
 	}
 
-	if es[u.String()].Status == "NOK" {
+	if es.state[u.String()].Status == "NOK" {
 		return u, false
 	} else {
 		return u, true
