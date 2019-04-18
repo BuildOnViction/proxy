@@ -23,8 +23,6 @@ COPY --from=builder /usr/local/bin/proxy /usr/local/bin/proxy
 
 RUN chmod +x /usr/local/bin/proxy
 
-EXPOSE 80
+EXPOSE 3000
 
-ENTRYPOINT ["/usr/local/bin/proxy"]
-
-CMD ["--help"]
+CMD ["/usr/local/bin/proxy", "--help"]
