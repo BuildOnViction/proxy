@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"net/url"
+	"time"
 )
 
 type Backend struct {
@@ -30,14 +31,21 @@ func point(p int, max int) int {
 func ServeHTTP(wr http.ResponseWriter, r *http.Request) {
 	var resp *http.Response
 	var req *http.Request
-	client := &http.Client{}
+	var err error
+	client := &http.Client{
+		Timeout: time.Second * 60,
+	}
+	defer r.Body.Close()
 
-	req, _ = http.NewRequest(r.Method, r.URL.String(), r.Body)
+	req, err = http.NewRequest(r.Method, r.URL.String(), r.Body)
+	if err != nil {
+		connChannel <- &HttpConnection{nil, nil, err}
+		return
+	}
 	for name, value := range r.Header {
 		req.Header.Set(name, value[0])
 	}
 	resp, _ = client.Do(req)
-	defer r.Body.Close()
 
-	connChannel <- &HttpConnection{r, resp}
+	connChannel <- &HttpConnection{r, resp, nil}
 }

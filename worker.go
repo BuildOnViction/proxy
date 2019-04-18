@@ -19,6 +19,7 @@ type WorkRequest struct {
 type HttpConnection struct {
 	Request  *http.Request
 	Response *http.Response
+	Error    error
 }
 
 type JsonRpc struct {
@@ -98,6 +99,11 @@ func Collector(w http.ResponseWriter, r *http.Request) {
 	for {
 		select {
 		case conn := <-connChannel:
+			if conn.Error != nil {
+				log.Error("RPC response", "method", method, "error", conn.Error)
+				w.WriteHeader(http.StatusBadGateway)
+				return
+			}
 			if conn.Response != nil {
 				for k, v := range conn.Response.Header {
 					w.Header().Set(k, v[0])
