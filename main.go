@@ -62,9 +62,9 @@ func main() {
 				go func() {
 					u, ok := healthcheck.Run(url)
 					if !ok {
-						nhlm <- u
+						nhlf <- u
 					} else {
-						hlm <- u
+						hlf <- u
 					}
 
 				}()
@@ -74,9 +74,9 @@ func main() {
 				go func() {
 					u, ok := healthcheck.Run(url)
 					if !ok {
-						nhlf <- u
+						nhlm <- u
 					} else {
-						hlf <- u
+						hlm <- u
 					}
 				}()
 			}
