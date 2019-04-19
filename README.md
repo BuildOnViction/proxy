@@ -45,5 +45,5 @@ time bash test.sh
 
 Run test 100 requests without proxy:
 ```
-time bash test.sh
+time bash test.sh 1
 ```
