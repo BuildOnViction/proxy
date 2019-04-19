@@ -18,6 +18,7 @@ var (
 	ConfigFile      = flag.String("config", "./config/default.json", "Path to config file")
 	CacheLimit      = flag.Int("cacheLimit", 100000, "Cache limit")
 	CacheExpiration = flag.String("cacheExpiration", "2s", "Cache expiration")
+	Verbosity       = flag.Int("verbosity", 3, "Log Verbosity")
 )
 
 type arrEndpointFlags []string
@@ -64,6 +65,8 @@ func main() {
 	backend.Fullnode = urls
 
 	// setup log
+	h := log.LvlFilterHandler(log.Lvl(*Verbosity), log.StdoutHandler)
+	log.Root().SetHandler(h)
 	log.Debug("Starting the proxy", "workers", *NWorkers, "config", *ConfigFile)
 
 	// Cache
