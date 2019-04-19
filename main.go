@@ -109,14 +109,18 @@ func main() {
 			case u := <-nhlm:
 				for i := 0; i < len(backend.Masternode); i++ {
 					if u.String() == backend.Masternode[i].String() {
+						backend.Lock()
 						backend.Masternode = append(backend.Masternode[:i], backend.Masternode[i+1:]...)
+						backend.Unlock()
 						break
 					}
 				}
 			case u := <-nhlf:
 				for i := 0; i < len(backend.Fullnode); i++ {
 					if u.String() == backend.Fullnode[i].String() {
+						backend.Lock()
 						backend.Fullnode = append(backend.Fullnode[:i], backend.Fullnode[i+1:]...)
+						backend.Unlock()
 						break
 					}
 				}
@@ -129,7 +133,9 @@ func main() {
 					}
 				}
 				if b {
+					backend.Lock()
 					backend.Masternode = append(backend.Masternode, u)
+					backend.Unlock()
 				}
 			case u := <-hlf:
 				b := true
@@ -140,7 +146,9 @@ func main() {
 					}
 				}
 				if b {
+					backend.Lock()
 					backend.Fullnode = append(backend.Fullnode, u)
+					backend.Unlock()
 				}
 			}
 		}

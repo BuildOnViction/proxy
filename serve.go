@@ -3,10 +3,12 @@ package main
 import (
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
 )
 
 type Backend struct {
+	sync.Mutex
 	Masternode []*url.URL
 	Fullnode   []*url.URL
 }
