@@ -79,7 +79,7 @@ func Collector(w http.ResponseWriter, r *http.Request) {
 
 	if c := storage.Get(cacheKey); c != nil && cacheKey != "" {
 		log.Debug("Get from cache", "method", method, "key", cacheKey)
-		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.Write(c)
 		return
 	}
@@ -94,7 +94,7 @@ func Collector(w http.ResponseWriter, r *http.Request) {
 
 	// Push the work onto the queue.
 	WorkQueue <- work
-	log.Debug("Work request queued", "method", method)
+	log.Debug("Work request queued", "method", method, "body", r.Body)
 
 	for {
 		select {
