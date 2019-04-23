@@ -66,6 +66,12 @@ func route(r *http.Request) (*url.URL, string, string, error) {
 }
 
 func Collector(w http.ResponseWriter, r *http.Request) {
+	// serve only JSON RPC request
+	if r.Method != "POST" {
+		log.Info("NOT RPC Request", "method", r.Method)
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 
 	url, method, cacheKey, err := route(r)
 	if err != nil {
@@ -81,12 +87,6 @@ func Collector(w http.ResponseWriter, r *http.Request) {
 		log.Debug("Get from cache", "method", method, "key", cacheKey)
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.Write(c)
-		return
-	}
-
-	// serve only JSON RPC request
-	if r.Method != "POST" {
-		w.WriteHeader(http.StatusOK)
 		return
 	}
 

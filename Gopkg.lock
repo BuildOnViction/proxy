@@ -45,6 +45,14 @@
   version = "v0.0.4"
 
 [[projects]]
+  digest = "1:b0c25f00bad20d783d259af2af8666969e2fc343fa0dc9efe52936bbd67fb758"
+  name = "github.com/rs/cors"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "9a47f48565a795472d43519dd49aac781f3034fb"
+  version = "v1.6.0"
+
+[[projects]]
   branch = "master"
   digest = "1:7c3cf8f9e513ba8a0bd2f2c694646397a45e9d7458e61fabd774abb0f6149372"
   name = "golang.org/x/sys"
@@ -58,6 +66,7 @@
   input-imports = [
     "github.com/hashicorp/golang-lru",
     "github.com/inconshreveable/log15",
+    "github.com/rs/cors",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

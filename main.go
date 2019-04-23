@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	log "github.com/inconshreveable/log15"
+	"github.com/rs/cors"
 	"github.com/tomochain/proxy/cache"
 	"github.com/tomochain/proxy/cache/lru"
 	"github.com/tomochain/proxy/config"
@@ -15,6 +16,7 @@ import (
 var (
 	NWorkers        = flag.Int("n", 16, "The number of workers to start")
 	HTTPAddr        = flag.String("http", "0.0.0.0:3000", "Address to listen for HTTP requests on")
+	HTTPSAddr       = flag.String("https", "", "Address to listen for HTTPS requests on")
 	ConfigFile      = flag.String("config", "./config/default.json", "Path to config file")
 	CacheLimit      = flag.Int("cacheLimit", 100000, "Cache limit")
 	CacheExpiration = flag.String("cacheExpiration", "2s", "Cache expiration")
@@ -159,13 +161,24 @@ func main() {
 
 	StartDispatcher(*NWorkers)
 
-	http.HandleFunc("/proxystatus", proxystatus)
-	http.HandleFunc("/endpointstatus", healthcheck.GetEndpointStatus)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/proxystatus", proxystatus)
+	mux.HandleFunc("/endpointstatus", healthcheck.GetEndpointStatus)
 
-	http.HandleFunc("/", Collector)
+	mux.HandleFunc("/", Collector)
+	handler := cors.Default().Handler(mux)
+
+	if *HTTPSAddr != "" {
+		go func() {
+			log.Info("HTTPS server listening on", "addr", *HTTPSAddr)
+			if err := http.ListenAndServeTLS(*HTTPSAddr, "certs/domain.crt", "certs/domain.key", handler); err != nil {
+				log.Error("Failed start https server", "error", err.Error())
+			}
+		}()
+	}
 
 	log.Info("HTTP server listening on", "addr", *HTTPAddr)
-	if err := http.ListenAndServe(*HTTPAddr, nil); err != nil {
+	if err := http.ListenAndServe(*HTTPAddr, handler); err != nil {
 		log.Error("Failed start http server", "error", err.Error())
 	}
 }
