@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-    "sync"
+	"sync"
 )
 
 type EthBlockNumber struct {
@@ -22,11 +22,11 @@ type EndpointState struct {
 }
 
 type StateStore struct {
-    sync.Mutex
-    state map[string]EndpointState
+	sync.Mutex
+	state map[string]EndpointState
 }
 
-var es *StateStore = &StateStore{ state: make(map[string]EndpointState) }
+var es *StateStore = &StateStore{state: make(map[string]EndpointState)}
 
 func Run(u *url.URL) (*url.URL, bool) {
 	var err error
@@ -49,7 +49,8 @@ func Run(u *url.URL) (*url.URL, bool) {
 	}
 
 	// save state
-    es.Lock()
+	es.Lock()
+	defer es.Unlock()
 	if bn == es.state[u.String()].BlockNumber {
 		c := es.state[u.String()].Count + 1
 		status := "OK"
@@ -64,7 +65,6 @@ func Run(u *url.URL) (*url.URL, bool) {
 	if err != nil {
 		es.state[u.String()] = EndpointState{bn, 0, "NOK"}
 	}
-    es.Unlock()
 
 	if err != nil || es.state[u.String()].Status == "NOK" {
 		log.Error("Healthcheck", "url", u.String(), "number", bn, "count", es.state[u.String()].Count, "status", "NOK", "err", err)

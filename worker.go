@@ -11,9 +11,12 @@ import (
 	"time"
 )
 
+type HttpConnectionChannel chan *HttpConnection
+
 type WorkRequest struct {
 	W http.ResponseWriter
 	R *http.Request
+	C HttpConnectionChannel
 }
 
 type HttpConnection struct {
@@ -26,13 +29,9 @@ type JsonRpc struct {
 	Method string
 }
 
-type HttpConnectionChannel chan *HttpConnection
-
 var WorkerQueue chan chan WorkRequest
 
 var WorkQueue = make(chan WorkRequest, 100)
-
-var connChannel = make(HttpConnectionChannel)
 
 func route(r *http.Request) (*url.URL, string, string, error) {
 	body, _ := ioutil.ReadAll(r.Body)
@@ -90,7 +89,10 @@ func Collector(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	work := WorkRequest{W: w, R: r}
+	var connChannel = make(HttpConnectionChannel)
+	defer close(connChannel)
+
+	work := WorkRequest{W: w, R: r, C: connChannel}
 
 	// Push the work onto the queue.
 	WorkQueue <- work
@@ -177,7 +179,7 @@ func (w Worker) Start() {
 
 			select {
 			case work := <-w.Work:
-				ServeHTTP(work.W, work.R)
+				ServeHTTP(work.W, work.R, work.C)
 
 			case <-w.QuitChan:
 				return

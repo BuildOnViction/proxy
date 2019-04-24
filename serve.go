@@ -30,7 +30,7 @@ func point(p int, max int) int {
 	return p + 1
 }
 
-func ServeHTTP(wr http.ResponseWriter, r *http.Request) {
+func ServeHTTP(wr http.ResponseWriter, r *http.Request, c HttpConnectionChannel) {
 	var resp *http.Response
 	var req *http.Request
 	var err error
@@ -41,7 +41,7 @@ func ServeHTTP(wr http.ResponseWriter, r *http.Request) {
 
 	req, err = http.NewRequest(r.Method, r.URL.String(), r.Body)
 	if err != nil {
-		connChannel <- &HttpConnection{nil, nil, err}
+		c <- &HttpConnection{nil, nil, err}
 		return
 	}
 	for name, value := range r.Header {
@@ -49,5 +49,5 @@ func ServeHTTP(wr http.ResponseWriter, r *http.Request) {
 	}
 	resp, _ = client.Do(req)
 
-	connChannel <- &HttpConnection{r, resp, nil}
+	c <- &HttpConnection{r, resp, nil}
 }
