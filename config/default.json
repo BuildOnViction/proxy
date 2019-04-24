@@ -1,4 +1,6 @@
 {
     "masternode": ["https://rpc.tomochain.com"],
-    "fullnode": ["https://rpc.tomochain.com"]
+    "fullnode": ["https://rpc.tomochain.com"],
+    "sslcrt": "certs/domain.crt",
+    "sslkey": "certs/domain.key"
 }

@@ -83,7 +83,8 @@ func Run(u *url.URL) (*url.URL, bool) {
 func GetEndpointStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	data, _ := json.Marshal(es)
+	endpoint := r.URL.Query().Get("u")
+	data, _ := json.Marshal(es.state[endpoint])
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
 	return

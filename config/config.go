@@ -8,6 +8,8 @@ import (
 type Config struct {
 	Masternode []string
 	Fullnode   []string
+	SslCrt     string
+	SslKey     string
 }
 
 var config Config

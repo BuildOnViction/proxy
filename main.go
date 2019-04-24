@@ -171,7 +171,7 @@ func main() {
 	if *HTTPSAddr != "" {
 		go func() {
 			log.Info("HTTPS server listening on", "addr", *HTTPSAddr)
-			if err := http.ListenAndServeTLS(*HTTPSAddr, "certs/domain.crt", "certs/domain.key", handler); err != nil {
+			if err := http.ListenAndServeTLS(*HTTPSAddr, c.SslCrt, c.SslKey, handler); err != nil {
 				log.Error("Failed start https server", "error", err.Error())
 			}
 		}()
