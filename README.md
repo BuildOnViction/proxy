@@ -32,6 +32,17 @@ Run with Docker:
 docker run -p 3000:3000 tomochain/proxy proxy --endpoint https://rpc.tomochain.com
 ```
 
+Custom config file:
+```
+./proxy --config path_to_json_config_file
+```
+
+Enable https:
+```
+./proxy --https 0.0.0.0:443
+```
+Note: You should create your own certs, and update config file with the path to the files
+
 ## Test
 Start proxy:
 ```
