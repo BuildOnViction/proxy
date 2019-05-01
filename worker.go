@@ -49,7 +49,6 @@ func route(r *http.Request) (*url.URL, string, string, error) {
 			return nil, "", "", errors.New("No endpoint")
 		}
 		url = backend.Masternode[pointer.Masternode]
-		log.Info("RPC request", "type", "masternode", "method", b.Method, "index", pointer.Masternode, "host", url.Host)
 		cacheKey = ""
 	} else {
 		max := len(backend.Fullnode) - 1
@@ -58,7 +57,6 @@ func route(r *http.Request) (*url.URL, string, string, error) {
 			return nil, "", "", errors.New("No endpoint")
 		}
 		url = backend.Fullnode[pointer.Fullnode]
-		log.Info("RPC request", "type", "fullnode", "method", b.Method, "index", pointer.Fullnode, "max", max, "host", url.Host)
 	}
 	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 	return url, b.Method, cacheKey, err
@@ -92,6 +90,7 @@ func Collector(w http.ResponseWriter, r *http.Request) {
 	var connChannel = make(HttpConnectionChannel)
 	defer close(connChannel)
 
+    start := time.Now()
 	work := WorkRequest{W: w, R: r, C: connChannel}
 
 	// Push the work onto the queue.
@@ -118,6 +117,8 @@ func Collector(w http.ResponseWriter, r *http.Request) {
 				}
 
 				w.Write(body)
+                elapsed := time.Since(start)
+                log.Info("RPC request", "method", method, "host", url.Host, "elapsed", elapsed)
 				defer conn.Response.Body.Close()
 			} else {
 				w.WriteHeader(http.StatusOK)
