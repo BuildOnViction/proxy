@@ -35,6 +35,7 @@ func ServeHTTP(wr http.ResponseWriter, r *http.Request, c HttpConnectionChannel)
 	var resp *http.Response
 	var req *http.Request
 	var err error
+    start := time.Now()
     tr := &http.Transport{
         TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
     }
@@ -46,13 +47,14 @@ func ServeHTTP(wr http.ResponseWriter, r *http.Request, c HttpConnectionChannel)
 
 	req, err = http.NewRequest(r.Method, r.URL.String(), r.Body)
 	if err != nil {
-		c <- &HttpConnection{nil, nil, err}
+		c <- &HttpConnection{nil, nil, err, nil}
 		return
 	}
 	for name, value := range r.Header {
 		req.Header.Set(name, value[0])
 	}
 	resp, _ = client.Do(req)
+    elapsed := time.Since(start)
 
-	c <- &HttpConnection{r, resp, nil}
+	c <- &HttpConnection{r, resp, nil, &elapsed}
 }

@@ -23,6 +23,7 @@ type HttpConnection struct {
 	Request  *http.Request
 	Response *http.Response
 	Error    error
+    Elapsed *time.Duration
 }
 
 type JsonRpc struct {
@@ -90,7 +91,6 @@ func Collector(w http.ResponseWriter, r *http.Request) {
 	var connChannel = make(HttpConnectionChannel)
 	defer close(connChannel)
 
-    start := time.Now()
 	work := WorkRequest{W: w, R: r, C: connChannel}
 
 	// Push the work onto the queue.
@@ -117,8 +117,7 @@ func Collector(w http.ResponseWriter, r *http.Request) {
 				}
 
 				w.Write(body)
-                elapsed := time.Since(start)
-                log.Info("RPC request", "method", method, "host", url.Host, "elapsed", elapsed)
+                log.Info("RPC request", "method", method, "host", url.Host, "elapsed", conn.Elapsed)
 				defer conn.Response.Body.Close()
 			} else {
 				w.WriteHeader(http.StatusOK)
