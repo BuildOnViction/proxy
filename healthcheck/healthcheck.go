@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+    "time"
+    "crypto/tls"
 )
 
 type EthBlockNumber struct {
@@ -34,9 +36,16 @@ func Run(u *url.URL) (*url.URL, bool) {
 	var bn uint64
 	var bd []byte
 
+    tr := &http.Transport{
+        TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+    }
+	client := &http.Client{
+        Transport: tr,
+		Timeout: time.Second * 60,
+	}
 	byt := []byte(`{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}`)
 	body := bytes.NewReader(byt)
-	resp, err := http.Post(u.String(), "application/json", body)
+	resp, err := client.Post(u.String(), "application/json", body)
 	if err == nil {
 		defer resp.Body.Close()
 		bd, err = ioutil.ReadAll(resp.Body)

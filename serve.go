@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"sync"
 	"time"
+    "crypto/tls"
 )
 
 type Backend struct {
@@ -34,7 +35,11 @@ func ServeHTTP(wr http.ResponseWriter, r *http.Request, c HttpConnectionChannel)
 	var resp *http.Response
 	var req *http.Request
 	var err error
+    tr := &http.Transport{
+        TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+    }
 	client := &http.Client{
+        Transport: tr,
 		Timeout: time.Second * 60,
 	}
 	defer r.Body.Close()
