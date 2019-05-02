@@ -1,11 +1,11 @@
 package main
 
 import (
+	"crypto/tls"
 	"net/http"
 	"net/url"
 	"sync"
 	"time"
-    "crypto/tls"
 )
 
 type Backend struct {
@@ -35,17 +35,19 @@ func ServeHTTP(wr http.ResponseWriter, r *http.Request, c HttpConnectionChannel)
 	var resp *http.Response
 	var req *http.Request
 	var err error
-    start := time.Now()
-    tr := &http.Transport{
-        TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-    }
+	start := time.Now()
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
 	client := &http.Client{
-        Transport: tr,
-		Timeout: time.Second * 60,
+		Transport: tr,
+		Timeout:   time.Second * 60,
 	}
 	defer r.Body.Close()
 
 	req, err = http.NewRequest(r.Method, r.URL.String(), r.Body)
+	req.Header.Set("Connection", "close")
+
 	if err != nil {
 		c <- &HttpConnection{nil, nil, err, nil}
 		return
@@ -54,7 +56,7 @@ func ServeHTTP(wr http.ResponseWriter, r *http.Request, c HttpConnectionChannel)
 		req.Header.Set(name, value[0])
 	}
 	resp, _ = client.Do(req)
-    elapsed := time.Since(start)
+	elapsed := time.Since(start)
 
 	c <- &HttpConnection{r, resp, nil, &elapsed}
 }
