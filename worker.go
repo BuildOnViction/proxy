@@ -23,7 +23,7 @@ type HttpConnection struct {
 	Request  *http.Request
 	Response *http.Response
 	Error    error
-    Elapsed *time.Duration
+	Elapsed  *time.Duration
 }
 
 type JsonRpc struct {
@@ -117,7 +117,7 @@ func Collector(w http.ResponseWriter, r *http.Request) {
 				}
 
 				w.Write(body)
-                log.Info("RPC request", "method", method, "host", url.Host, "elapsed", conn.Elapsed)
+				log.Info("RPC request", "method", method, "host", url.Host, "elapsed", conn.Elapsed)
 				defer conn.Response.Body.Close()
 			} else {
 				w.WriteHeader(http.StatusOK)
