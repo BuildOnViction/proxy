@@ -35,6 +35,8 @@ func Run(u *url.URL) (*url.URL, bool) {
 	var b EthBlockNumber
 	var bn uint64
 	var bd []byte
+	var req *http.Request
+	var resp *http.Response
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -45,7 +47,10 @@ func Run(u *url.URL) (*url.URL, bool) {
 	}
 	byt := []byte(`{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}`)
 	body := bytes.NewReader(byt)
-	resp, err := client.Post(u.String(), "application/json", body)
+	req, _ = http.NewRequest("POST", u.String(), body)
+	req.Header.Set("Connection", "close")
+	req.Header.Set("Content-Type", "application/json")
+	resp, err = client.Do(req)
 	if err == nil {
 		defer resp.Body.Close()
 		bd, err = ioutil.ReadAll(resp.Body)
