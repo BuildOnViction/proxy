@@ -13,6 +13,8 @@ type ProxyStatus struct {
 func proxystatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	defer r.Body.Close()
+
 	status := ProxyStatus{
 		true,
 		*NWorkers,

@@ -2,6 +2,7 @@ package healthcheck
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	log "github.com/inconshreveable/log15"
 	"github.com/tomochain/proxy/utils/hexutil"
@@ -9,8 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
-    "time"
-    "crypto/tls"
+	"time"
 )
 
 type EthBlockNumber struct {
@@ -36,12 +36,12 @@ func Run(u *url.URL) (*url.URL, bool) {
 	var bn uint64
 	var bd []byte
 
-    tr := &http.Transport{
-        TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-    }
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
 	client := &http.Client{
-        Transport: tr,
-		Timeout: time.Second * 60,
+		Transport: tr,
+		Timeout:   time.Second * 60,
 	}
 	byt := []byte(`{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}`)
 	body := bytes.NewReader(byt)
@@ -91,6 +91,8 @@ func Run(u *url.URL) (*url.URL, bool) {
 
 func GetEndpointStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	defer r.Body.Close()
 
 	endpoint := r.URL.Query().Get("u")
 	data, _ := json.Marshal(es.state[endpoint])

@@ -64,6 +64,8 @@ func route(r *http.Request) (*url.URL, string, string, error) {
 }
 
 func Collector(w http.ResponseWriter, r *http.Request) {
+
+	defer r.Body.Close()
 	// serve only JSON RPC request
 	if r.Method != "POST" {
 		log.Info("NOT RPC Request", "method", r.Method)
