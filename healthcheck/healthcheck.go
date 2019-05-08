@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	log "github.com/inconshreveable/log15"
+	"github.com/tomochain/proxy/config"
 	"github.com/tomochain/proxy/utils/hexutil"
 	"io/ioutil"
 	"net/http"
@@ -50,6 +51,17 @@ func Run(u *url.URL) (*url.URL, bool) {
 	req, _ = http.NewRequest("POST", u.String(), body)
 	req.Header.Set("Connection", "close")
 	req.Header.Set("Content-Type", "application/json")
+
+	c := config.GetConfig()
+	if c.Headers != nil {
+		for key, value := range *c.Headers {
+			req.Header.Set(key, value)
+			if host := req.Header.Get("Host"); host != "" {
+				req.Host = host
+			}
+		}
+	}
+
 	resp, err = client.Do(req)
 	if err == nil {
 		defer resp.Body.Close()

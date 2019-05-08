@@ -6,11 +6,14 @@ import (
 )
 
 type Config struct {
-	Masternode []string
-	Fullnode   []string
-	SslCrt     string
-	SslKey     string
+	Masternode []string `json:"Masternode,omitempty"`
+	Fullnode   []string `json:"Fullnode,omitempty"`
+	SslCrt     string   `json:"SslCrt,omitempty"`
+	SslKey     string   `json:"SslKey,omitempty"`
+	*Headers   `json:"Headers,omitempty"`
 }
+
+type Headers map[string]string
 
 var config Config
 

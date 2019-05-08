@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/tls"
+	"github.com/tomochain/proxy/config"
 	"net/http"
 	"net/url"
 	"sync"
@@ -47,6 +48,16 @@ func ServeHTTP(wr http.ResponseWriter, r *http.Request, c HttpConnectionChannel)
 
 	req, err = http.NewRequest(r.Method, r.URL.String(), r.Body)
 	req.Header.Set("Connection", "close")
+
+	cfg := config.GetConfig()
+	if cfg.Headers != nil {
+		for key, value := range *cfg.Headers {
+			req.Header.Set(key, value)
+			if host := req.Header.Get("Host"); host != "" {
+				req.Host = host
+			}
+		}
+	}
 
 	if err != nil {
 		c <- &HttpConnection{nil, nil, err, nil}
