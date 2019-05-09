@@ -20,7 +20,18 @@ jobs:
         - docker push tomochain/proxy:latest
         - docker tag tomochain/proxy tomochain/proxy:$TRAVIS_BUILD_ID
         - docker push tomochain/proxy:$TRAVIS_BUILD_ID
+          
+    - stage: Release application
+      deploy:
+        provider: releases
+        api_key: $GH_TOKEN
+        skip_cleanup: true
+        overwrite: true
+        on:
+          tags: true
 
 stages:
   - name: Build and push image
     if: type != pull_request AND branch = master AND tag IS blank AND repo = tomochain/proxy
+  - name: Release application
+    if: type != pull_request AND branch =~ ^v AND tag IS present AND repo = tomochain/proxy
