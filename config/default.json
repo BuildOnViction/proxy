@@ -1,6 +1,7 @@
 {
     "masternode": ["https://rpc.tomochain.com"],
     "fullnode": ["https://rpc.tomochain.com"],
+    "websocket": "wss://ws.tomochain.com",
     "sslcrt": "certs/domain.crt",
     "sslkey": "certs/domain.key",
     "headers": {

@@ -166,6 +166,9 @@ func main() {
 	mux.HandleFunc("/endpointstatus", healthcheck.GetEndpointStatus)
 
 	mux.HandleFunc("/", Collector)
+	wsUrl, _ := url.Parse(c.Websocket)
+	ws := WsProxy(wsUrl)
+	mux.HandleFunc("/ws", ws.ServeHTTP)
 	handler := cors.Default().Handler(mux)
 
 	if *HTTPSAddr != "" {
