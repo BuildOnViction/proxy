@@ -17,6 +17,8 @@ var (
 	NWorkers        = flag.Int("n", 16, "The number of workers to start")
 	HTTPAddr        = flag.String("http", "0.0.0.0:3000", "Address to listen for HTTP requests on")
 	HTTPSAddr       = flag.String("https", "", "Address to listen for HTTPS requests on")
+	WsAddr          = flag.String("ws", "", "Address to listen for WS requests on")
+	WssAddr         = flag.String("wss", "", "Address to listen for WSS requests on")
 	ConfigFile      = flag.String("config", "./config/default.json", "Path to config file")
 	CacheLimit      = flag.Int("cacheLimit", 100000, "Cache limit")
 	CacheExpiration = flag.String("cacheExpiration", "2s", "Cache expiration")
@@ -166,9 +168,6 @@ func main() {
 	mux.HandleFunc("/endpointstatus", healthcheck.GetEndpointStatus)
 
 	mux.HandleFunc("/", Collector)
-	wsUrl, _ := url.Parse(c.Websocket)
-	ws := WsProxy(wsUrl)
-	mux.HandleFunc("/ws", ws.ServeHTTP)
 	handler := cors.Default().Handler(mux)
 
 	if *HTTPSAddr != "" {
@@ -176,6 +175,27 @@ func main() {
 			log.Info("HTTPS server listening on", "addr", *HTTPSAddr)
 			if err := http.ListenAndServeTLS(*HTTPSAddr, c.SslCrt, c.SslKey, handler); err != nil {
 				log.Error("Failed start https server", "error", err.Error())
+			}
+		}()
+	}
+
+    wsUrl, _ := url.Parse(c.Websocket)
+    wsProxyHandler := WsProxyHandler(wsUrl)
+
+	if *WsAddr != "" {
+		go func() {
+			log.Info("WS server listening on", "addr", *WsAddr)
+			if err := http.ListenAndServe(*WsAddr, wsProxyHandler); err != nil {
+				log.Error("Failed start ws server", "error", err.Error())
+			}
+		}()
+	}
+
+	if *WssAddr != "" {
+		go func() {
+			log.Info("WSS server listening on", "addr", *WssAddr)
+			if err := http.ListenAndServeTLS(*WssAddr, c.SslCrt, c.SslKey, wsProxyHandler); err != nil {
+				log.Error("Failed start ws server", "error", err.Error())
 			}
 		}()
 	}
