@@ -68,6 +68,13 @@ func main() {
 	}
 	backend.Fullnode = urls
 
+	urls = []*url.URL{}
+	for i := 0; i < len(c.Websocket); i++ {
+		url, _ := url.Parse(c.Websocket[i])
+		urls = append(urls, url)
+	}
+	backend.Websocket = urls
+
 	// setup log
 	h := log.LvlFilterHandler(log.Lvl(*Verbosity), log.StdoutHandler)
 	log.Root().SetHandler(h)
@@ -179,10 +186,9 @@ func main() {
 		}()
 	}
 
-    wsUrl, _ := url.Parse(c.Websocket)
-    wsProxyHandler := WsProxyHandler(wsUrl)
+	wsProxyHandler := WsProxyHandler(backend.Websocket)
 
-	if *WsAddr != "" {
+	if *WsAddr != "" && len(backend.Websocket) > 0 {
 		go func() {
 			log.Info("WS server listening on", "addr", *WsAddr)
 			if err := http.ListenAndServe(*WsAddr, wsProxyHandler); err != nil {
@@ -191,7 +197,7 @@ func main() {
 		}()
 	}
 
-	if *WssAddr != "" {
+	if *WssAddr != "" && len(backend.Websocket) > 0 {
 		go func() {
 			log.Info("WSS server listening on", "addr", *WssAddr)
 			if err := http.ListenAndServeTLS(*WssAddr, c.SslCrt, c.SslKey, wsProxyHandler); err != nil {

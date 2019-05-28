@@ -13,16 +13,18 @@ type Backend struct {
 	sync.Mutex
 	Masternode []*url.URL
 	Fullnode   []*url.URL
+	Websocket  []*url.URL
 }
 
 type Pointer struct {
 	Masternode int
 	Fullnode   int
+	Websocket  int
 }
 
 var (
 	backend Backend
-	pointer = Pointer{0, 0}
+	pointer = Pointer{0, 0, 0}
 )
 
 func point(p int, max int) int {

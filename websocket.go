@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	log "github.com/inconshreveable/log15"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 
@@ -29,17 +29,19 @@ type WebsocketProxy struct {
 	Dialer *websocket.Dialer
 }
 
-// ProxyHandler returns a new http.Handler interface that reverse proxies the
-// request to the given target.
-func WsProxyHandler(target *url.URL) http.Handler { return WsProxy(target) }
+func WsProxyHandler(target []*url.URL) http.Handler {
+	return WsProxy(target)
+}
 
-func WsProxy(target *url.URL) *WebsocketProxy {
+func WsProxy(target []*url.URL) *WebsocketProxy {
 	backend := func(r *http.Request) *url.URL {
-		// Shallow copy
-		u := *target
+		max := len(backend.Websocket) - 1
+		pointer.Websocket = point(pointer.Websocket, max)
+		u := *backend.Websocket[pointer.Websocket]
 		u.Fragment = r.URL.Fragment
 		u.Path = r.URL.Path
 		u.RawQuery = r.URL.RawQuery
+		log.Info("Websocket endpoint", "url", u.String(), "index", pointer.Websocket)
 		return &u
 	}
 	return &WebsocketProxy{Backend: backend}
@@ -48,14 +50,14 @@ func WsProxy(target *url.URL) *WebsocketProxy {
 // ServeHTTP implements the http.Handler that proxies WebSocket connections.
 func (w *WebsocketProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	if w.Backend == nil {
-		log.Println("websocketproxy: backend function is not defined")
+		log.Error("websocketproxy: backend function is not defined")
 		http.Error(rw, "internal server error (code: 1)", http.StatusInternalServerError)
 		return
 	}
 
 	backendURL := w.Backend(req)
 	if backendURL == nil {
-		log.Println("websocketproxy: backend URL is nil")
+		log.Error("websocketproxy: backend URL is nil")
 		http.Error(rw, "internal server error (code: 2)", http.StatusInternalServerError)
 		return
 	}
@@ -67,10 +69,10 @@ func (w *WebsocketProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	connBackend, resp, err := dialer.Dial(backendURL.String(), nil)
 	if err != nil {
-		log.Printf("websocketproxy: couldn't dial to remote backend url %s", err)
+		log.Error("websocketproxy: couldn't dial to remote backend url", "error", err)
 		if resp != nil {
 			if err := copyResponse(rw, resp); err != nil {
-				log.Printf("websocketproxy: couldn't write response after failed remote backend handshake: %s", err)
+				log.Error("websocketproxy: couldn't write response after failed remote backend handshake", "error", err)
 			}
 		} else {
 			http.Error(rw, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
@@ -86,7 +88,7 @@ func (w *WebsocketProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	connPub, err := upgrader.Upgrade(rw, req, nil)
 	if err != nil {
-		log.Printf("websocketproxy: couldn't upgrade %s", err)
+		log.Error("websocketproxy: couldn't upgrade", "error", err)
 		return
 	}
 	defer connPub.Close()
@@ -127,7 +129,7 @@ func (w *WebsocketProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	}
 	if e, ok := err.(*websocket.CloseError); !ok || e.Code == websocket.CloseAbnormalClosure {
-		log.Printf(message, err)
+		log.Error("Websocket error", "msg", message, "error", err)
 	}
 }
 

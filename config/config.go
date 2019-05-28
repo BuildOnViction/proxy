@@ -8,7 +8,7 @@ import (
 type Config struct {
 	Masternode []string `json:"Masternode,omitempty"`
 	Fullnode   []string `json:"Fullnode,omitempty"`
-	Websocket  string   `json:"Websocket,omitempty"`
+	Websocket  []string `json:"Websocket,omitempty"`
 	SslCrt     string   `json:"SslCrt,omitempty"`
 	SslKey     string   `json:"SslKey,omitempty"`
 	*Headers   `json:"Headers,omitempty"`
