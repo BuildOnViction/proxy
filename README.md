@@ -41,6 +41,12 @@ Enable https:
 ```
 ./proxy --https 0.0.0.0:443
 ```
+
+Enable websocket:
+```
+./proxy --ws 0.0.0.0:3002
+```
+
 Note: You should create your own certs, and update config file with the path to the files
 
 ## Test
