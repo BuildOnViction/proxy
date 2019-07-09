@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	log "github.com/inconshreveable/log15"
 	"io/ioutil"
 	"net/http"
@@ -27,7 +28,8 @@ type HttpConnection struct {
 }
 
 type JsonRpc struct {
-	Method string
+	Method string      `json:"method,omitempty"`
+	Params interface{} `json:"params,omitempty"`
 }
 
 var WorkerQueue chan chan WorkRequest
@@ -59,13 +61,19 @@ func route(r *http.Request) (*url.URL, string, string, error) {
 		}
 		url = backend.Fullnode[pointer.Fullnode]
 	}
+	if b.Method == "eth_call" {
+		fmt.Println(b.Params)
+	}
 	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 	return url, b.Method, cacheKey, err
 }
 
 func Collector(w http.ResponseWriter, r *http.Request) {
 
+	var connChannel = make(HttpConnectionChannel)
 	defer r.Body.Close()
+	defer close(connChannel)
+
 	// serve only JSON RPC request
 	if r.Method != "POST" {
 		log.Info("NOT RPC Request", "method", r.Method)
@@ -89,9 +97,6 @@ func Collector(w http.ResponseWriter, r *http.Request) {
 		w.Write(c)
 		return
 	}
-
-	var connChannel = make(HttpConnectionChannel)
-	defer close(connChannel)
 
 	work := WorkRequest{W: w, R: r, C: connChannel}
 
@@ -121,6 +126,7 @@ func Collector(w http.ResponseWriter, r *http.Request) {
 				w.Write(body)
 				log.Info("RPC request", "method", method, "host", url.Host, "elapsed", conn.Elapsed)
 				defer conn.Response.Body.Close()
+				defer conn.Request.Body.Close()
 			} else {
 				w.WriteHeader(http.StatusOK)
 			}

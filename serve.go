@@ -50,6 +50,7 @@ func ServeHTTP(wr http.ResponseWriter, r *http.Request, c HttpConnectionChannel)
 
 	req, err = http.NewRequest(r.Method, r.URL.String(), r.Body)
 	req.Header.Set("Connection", "close")
+	req.Close = true
 
 	cfg := config.GetConfig()
 	if cfg.Headers != nil {
@@ -71,5 +72,5 @@ func ServeHTTP(wr http.ResponseWriter, r *http.Request, c HttpConnectionChannel)
 	resp, _ = client.Do(req)
 	elapsed := time.Since(start)
 
-	c <- &HttpConnection{r, resp, nil, &elapsed}
+	c <- &HttpConnection{req, resp, nil, &elapsed}
 }

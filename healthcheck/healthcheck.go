@@ -50,6 +50,7 @@ func Run(u *url.URL) (*url.URL, bool) {
 	body := bytes.NewReader(byt)
 	req, _ = http.NewRequest("POST", u.String(), body)
 	req.Header.Set("Connection", "close")
+	req.Close = true
 	req.Header.Set("Content-Type", "application/json")
 
 	c := config.GetConfig()
@@ -65,6 +66,7 @@ func Run(u *url.URL) (*url.URL, bool) {
 	resp, err = client.Do(req)
 	if err == nil {
 		defer resp.Body.Close()
+		defer req.Body.Close()
 		bd, err = ioutil.ReadAll(resp.Body)
 		if err == nil {
 			err = json.Unmarshal(bd, &b)
