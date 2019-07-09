@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	log "github.com/inconshreveable/log15"
 	"io/ioutil"
 	"net/http"
@@ -60,9 +59,6 @@ func route(r *http.Request) (*url.URL, string, string, error) {
 			return nil, "", "", errors.New("No endpoint")
 		}
 		url = backend.Fullnode[pointer.Fullnode]
-	}
-	if b.Method == "eth_call" {
-		fmt.Println(b.Params)
 	}
 	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 	return url, b.Method, cacheKey, err
