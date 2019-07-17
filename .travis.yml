@@ -9,15 +9,10 @@ go:
 jobs:
   include:
     - stage: Build binaries
-      env:
-        global:
-          - BUILD_GOARCH=amd64
-      matrix:
-        - BUILD_GOOS=linux
-        - BUILD_GOOS=darwin
-        - BUILD_GOOS=windows
       script:
-        - GOARCH=$BUILD_GOARCH GOOS=$BUILD_GOOS go build
+        - GOARCH=amd64 GOOS=linux go build
+        - GOARCH=amd64 GOOS=darwin go build
+        - GOARCH=amd64 GOOS=windows go build
         - ls
         
     - stage: Build and push image
