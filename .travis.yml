@@ -17,7 +17,6 @@ jobs:
   include:
     - stage: Build binaries
       script:
-        - gvm cross $BUILD_GOOS $BUILD_GOARCH
         - GOARCH=$BUILD_GOARCH GOOS=$BUILD_GOOS go build
         
     - stage: Build and push image
