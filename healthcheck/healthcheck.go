@@ -8,6 +8,7 @@ import (
 	"github.com/tomochain/proxy/config"
 	"github.com/tomochain/proxy/utils/hexutil"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/url"
 	"sync"
@@ -41,7 +42,15 @@ func Run(u *url.URL) (*url.URL, bool) {
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		DialContext: (&net.Dialer{
+			Timeout:   10 * time.Second,
+			KeepAlive: 10 * time.Second,
+		}).DialContext,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 4 * time.Second,
+		ResponseHeaderTimeout: 3 * time.Second,
 	}
+
 	client := &http.Client{
 		Transport: tr,
 		Timeout:   time.Second * 60,

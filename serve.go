@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"github.com/tomochain/proxy/config"
+	"net"
 	"net/http"
 	"net/url"
 	"sync"
@@ -41,7 +42,15 @@ func ServeHTTP(wr http.ResponseWriter, r *http.Request, c HttpConnectionChannel)
 	start := time.Now()
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		DialContext: (&net.Dialer{
+			Timeout:   10 * time.Second,
+			KeepAlive: 10 * time.Second,
+		}).DialContext,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 4 * time.Second,
+		ResponseHeaderTimeout: 3 * time.Second,
 	}
+
 	client := &http.Client{
 		Transport: tr,
 		Timeout:   time.Second * 60,
