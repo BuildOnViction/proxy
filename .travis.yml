@@ -12,13 +12,11 @@ env:
     - BUILD_GOOS=linux
     - BUILD_GOOS=darwin
     - BUILD_GOOS=windows
-
+script:
+    - GOARCH=$BUILD_GOARCH GOOS=$BUILD_GOOS go build
+    - ls
 jobs:
   include:
-    - stage: Build binaries
-      script:
-        - GOARCH=$BUILD_GOARCH GOOS=$BUILD_GOOS go build
-        
     - stage: Build and push image
       services:
         - docker
@@ -43,8 +41,6 @@ jobs:
           tags: true
 
 stages:
-  - name: Build binaries
-    if: type != pull_request AND branch = master AND tag IS blank AND repo = tomochain/proxy
   - name: Build and push image
     if: type != pull_request AND branch = master AND tag IS blank AND repo = tomochain/proxy
   - name: Release application
