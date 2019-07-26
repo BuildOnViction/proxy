@@ -24,18 +24,18 @@ jobs:
           
     - stage: Release application
       script:
-        - GOARCH=amd64 GOOS=linux go build -o proxy.linux.amd64
-        - GOARCH=amd64 GOOS=darwin go build -o proxy.darwin.amd64
-        - GOARCH=amd64 GOOS=windows go build -o proxy.darwin.amd64.exe
+        - GOARCH=amd64 GOOS=linux go build -o proxy.$TRAVIS_TAG.linux.amd64
+        - GOARCH=amd64 GOOS=darwin go build -o proxy.$TRAVIS_TAG.darwin.amd64
+        - GOARCH=amd64 GOOS=windows go build -o proxy.$TRAVIS_TAG.darwin.amd64.exe
       deploy:
         provider: releases
         api_key: $GH_TOKEN
         skip_cleanup: true
         overwrite: true
         file:
-          - proxy.linux.amd64
-          - proxy.darwin.amd64
-          - proxy.darwin.amd64.exe
+          - proxy.$TRAVIS_TAG.linux.amd64
+          - proxy.$TRAVIS_TAG.darwin.amd64
+          - proxy.$TRAVIS_TAG.darwin.amd64.exe
         on:
           tags: true
 
