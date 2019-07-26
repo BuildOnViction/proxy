@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"flag"
 	log "github.com/inconshreveable/log15"
 	"github.com/rs/cors"
@@ -177,10 +178,28 @@ func main() {
 	mux.HandleFunc("/", Collector)
 	handler := cors.Default().Handler(mux)
 
+	tlsConfig := &tls.Config{}
+	for i := 0; i < len(c.Certs); i++ {
+		sslCrt := c.Certs[i].Crt
+		sslKey := c.Certs[i].Key
+		cert, err := tls.LoadX509KeyPair(sslCrt, sslKey)
+		if err != nil {
+			log.Error("SSL certs", "error", err)
+		}
+		tlsConfig.Certificates = append(tlsConfig.Certificates, cert)
+
+		tlsConfig.BuildNameToCertificate()
+	}
+
 	if *HTTPSAddr != "" {
+		server := http.Server{
+			Addr:      *HTTPSAddr,
+			Handler:   handler,
+			TLSConfig: tlsConfig,
+		}
 		go func() {
 			log.Info("HTTPS server listening on", "addr", *HTTPSAddr)
-			if err := http.ListenAndServeTLS(*HTTPSAddr, c.SslCrt, c.SslKey, handler); err != nil {
+			if err := server.ListenAndServeTLS("", ""); err != nil {
 				log.Error("Failed start https server", "error", err.Error())
 			}
 		}()
@@ -198,9 +217,14 @@ func main() {
 	}
 
 	if *WssAddr != "" && len(backend.Websocket) > 0 {
+		server := http.Server{
+			Addr:      *HTTPSAddr,
+			Handler:   handler,
+			TLSConfig: tlsConfig,
+		}
 		go func() {
 			log.Info("WSS server listening on", "addr", *WssAddr)
-			if err := http.ListenAndServeTLS(*WssAddr, c.SslCrt, c.SslKey, wsProxyHandler); err != nil {
+			if err := server.ListenAndServeTLS("", ""); err != nil {
 				log.Error("Failed start ws server", "error", err.Error())
 			}
 		}()

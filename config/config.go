@@ -9,12 +9,16 @@ type Config struct {
 	Masternode []string `json:"Masternode,omitempty"`
 	Fullnode   []string `json:"Fullnode,omitempty"`
 	Websocket  []string `json:"Websocket,omitempty"`
-	SslCrt     string   `json:"SslCrt,omitempty"`
-	SslKey     string   `json:"SslKey,omitempty"`
+	Certs      []Certs  `json:"Certs,omitempty"`
 	*Headers   `json:"Headers,omitempty"`
 }
 
 type Headers map[string]string
+
+type Certs struct {
+	Crt string
+	Key string
+}
 
 var config Config
 
