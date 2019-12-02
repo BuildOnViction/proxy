@@ -171,9 +171,16 @@ func main() {
 
 	StartDispatcher(*NWorkers)
 
+	wsProxyHandler := WsProxyHandler(backend.Websocket)
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/proxystatus", proxystatus)
 	mux.HandleFunc("/endpointstatus", healthcheck.GetEndpointStatus)
+
+	if c.WsServerName != "" && len(backend.Websocket) > 0 {
+		log.Info("websocket")
+		mux.HandleFunc(c.WsServerName+"/", wsProxyHandler.ServeHTTP)
+	}
 
 	mux.HandleFunc("/", Collector)
 	handler := cors.Default().Handler(mux)
@@ -204,8 +211,6 @@ func main() {
 			}
 		}()
 	}
-
-	wsProxyHandler := WsProxyHandler(backend.Websocket)
 
 	if *WsAddr != "" && len(backend.Websocket) > 0 {
 		go func() {

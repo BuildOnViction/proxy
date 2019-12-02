@@ -6,11 +6,12 @@ import (
 )
 
 type Config struct {
-	Masternode []string `json:"Masternode,omitempty"`
-	Fullnode   []string `json:"Fullnode,omitempty"`
-	Websocket  []string `json:"Websocket,omitempty"`
-	Certs      []Certs  `json:"Certs,omitempty"`
-	*Headers   `json:"Headers,omitempty"`
+	Masternode   []string `json:"Masternode,omitempty"`
+	Fullnode     []string `json:"Fullnode,omitempty"`
+	Websocket    []string `json:"Websocket,omitempty"`
+	WsServerName string   `json:"WsServerName,omitempty"`
+	Certs        []Certs  `json:"Certs,omitempty"`
+	*Headers     `json:"Headers,omitempty"`
 }
 
 type Headers map[string]string

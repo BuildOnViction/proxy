@@ -129,7 +129,7 @@ func (w *WebsocketProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	}
 	if e, ok := err.(*websocket.CloseError); !ok || e.Code == websocket.CloseAbnormalClosure {
-		log.Error("Websocket error", "msg", message, "error", err)
+		log.Warn("Websocket error", "msg", message, "error", err)
 	}
 }
 
