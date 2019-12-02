@@ -178,7 +178,6 @@ func main() {
 	mux.HandleFunc("/endpointstatus", healthcheck.GetEndpointStatus)
 
 	if c.WsServerName != "" && len(backend.Websocket) > 0 {
-		log.Info("websocket")
 		mux.HandleFunc(c.WsServerName+"/", wsProxyHandler.ServeHTTP)
 	}
 
