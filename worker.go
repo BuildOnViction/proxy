@@ -42,7 +42,13 @@ func route(r *http.Request) (*url.URL, string, string, error) {
 	var url *url.URL
 	err := json.Unmarshal(body, &b)
 	if err != nil {
-		return nil, "", "", err
+		max := len(backend.Fullnode) - 1
+		pointer.Fullnode = point(pointer.Fullnode, max)
+		if pointer.Fullnode > max {
+			return nil, "", "", errors.New("No endpoint")
+		}
+		url = backend.Fullnode[pointer.Fullnode]
+		return url, "", cacheKey, err
 	}
 	if b.Method == "eth_sendRawTransaction" {
 		max := len(backend.Masternode) - 1
@@ -77,12 +83,7 @@ func Collector(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url, method, cacheKey, err := route(r)
-	if err != nil {
-		log.Error("RPC request", "method", method, "error", err)
-		w.WriteHeader(http.StatusBadGateway)
-		return
-	}
+	url, method, cacheKey, _ := route(r)
 
 	r.URL.Host = url.Host
 	r.URL.Scheme = url.Scheme
