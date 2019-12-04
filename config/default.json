@@ -2,7 +2,6 @@
     "masternode": ["https://rpc.tomochain.com"],
     "fullnode": ["https://rpc.tomochain.com"],
     "websocket": ["wss://ws.tomochain.com", "wss://ws.tomochain.com"],
-    "wsServerName": "mongodb.local",
     "certs": [
         {
             "crt": "certs/domain.crt",

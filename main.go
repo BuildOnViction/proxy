@@ -182,7 +182,7 @@ func main() {
 	}
 
 	mux.HandleFunc("/", Collector)
-	handler := cors.Default().Handler(mux)
+	handler := cors.AllowAll().Handler(mux)
 
 	tlsConfig := &tls.Config{}
 	for i := 0; i < len(c.Certs); i++ {
@@ -199,9 +199,12 @@ func main() {
 
 	if *HTTPSAddr != "" {
 		server := http.Server{
-			Addr:      *HTTPSAddr,
-			Handler:   handler,
-			TLSConfig: tlsConfig,
+			Addr:         *HTTPSAddr,
+			Handler:      handler,
+			TLSConfig:    tlsConfig,
+			WriteTimeout: 120 * time.Second,
+			ReadTimeout:  120 * time.Second,
+			IdleTimeout:  120 * time.Second,
 		}
 		go func() {
 			log.Info("HTTPS server listening on", "addr", *HTTPSAddr)
@@ -222,9 +225,12 @@ func main() {
 
 	if *WssAddr != "" && len(backend.Websocket) > 0 {
 		server := http.Server{
-			Addr:      *HTTPSAddr,
-			Handler:   handler,
-			TLSConfig: tlsConfig,
+			Addr:         *HTTPSAddr,
+			Handler:      handler,
+			TLSConfig:    tlsConfig,
+			WriteTimeout: 120 * time.Second,
+			ReadTimeout:  120 * time.Second,
+			IdleTimeout:  120 * time.Second,
 		}
 		go func() {
 			log.Info("WSS server listening on", "addr", *WssAddr)
@@ -235,7 +241,14 @@ func main() {
 	}
 
 	log.Info("HTTP server listening on", "addr", *HTTPAddr)
-	if err := http.ListenAndServe(*HTTPAddr, handler); err != nil {
+	server := http.Server{
+		Addr:         *HTTPAddr,
+		Handler:      handler,
+		WriteTimeout: 120 * time.Second,
+		ReadTimeout:  120 * time.Second,
+		IdleTimeout:  120 * time.Second,
+	}
+	if err := server.ListenAndServe(); err != nil {
 		log.Error("Failed start http server", "error", err.Error())
 	}
 }
