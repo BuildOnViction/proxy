@@ -81,12 +81,12 @@ func (w *WebsocketProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 	defer connBackend.Close()
 
-	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 	upgrader := w.Upgrader
 	if w.Upgrader == nil {
 		upgrader = DefaultUpgrader
 	}
 
+	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 	connPub, err := upgrader.Upgrade(rw, req, nil)
 	if err != nil {
 		log.Error("websocketproxy: couldn't upgrade", "error", err)
