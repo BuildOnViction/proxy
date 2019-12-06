@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"flag"
+	"fmt"
 	log "github.com/inconshreveable/log15"
 	"github.com/rs/cors"
 	"github.com/tomochain/proxy/cache"
@@ -24,6 +25,7 @@ var (
 	CacheLimit      = flag.Int("cacheLimit", 100000, "Cache limit")
 	CacheExpiration = flag.String("cacheExpiration", "2s", "Cache expiration")
 	Verbosity       = flag.Int("verbosity", 3, "Log Verbosity")
+	Version         = flag.Bool("version", false, "Version")
 )
 
 type arrEndpointFlags []string
@@ -45,6 +47,11 @@ func main() {
 	// Parse the command-line flags.
 	flag.Var(&endpoints, "endpoint", "List of endpoint urls")
 	flag.Parse()
+
+	if *Version != false {
+		fmt.Println("v0.5.7")
+		return
+	}
 
 	// setup config
 	config.Init(*ConfigFile)
