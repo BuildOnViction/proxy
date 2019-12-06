@@ -41,16 +41,11 @@ func route(r *http.Request) (*url.URL, string, string, error) {
 	var b JsonRpc
 	var url *url.URL
 	err := json.Unmarshal(body, &b)
-	if err != nil {
-		max := len(backend.Fullnode) - 1
-		pointer.Fullnode = point(pointer.Fullnode, max)
-		if pointer.Fullnode > max {
-			return nil, "", "", errors.New("No endpoint")
-		}
-		url = backend.Fullnode[pointer.Fullnode]
-		return url, "", cacheKey, err
+	method := ""
+	if err == nil {
+		method = b.Method
 	}
-	if b.Method == "eth_sendRawTransaction" {
+	if method == "eth_sendRawTransaction" {
 		max := len(backend.Masternode) - 1
 		pointer.Masternode = point(pointer.Masternode, max)
 		if pointer.Masternode > max {
@@ -67,7 +62,7 @@ func route(r *http.Request) (*url.URL, string, string, error) {
 		url = backend.Fullnode[pointer.Fullnode]
 	}
 	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
-	return url, b.Method, cacheKey, err
+	return url, method, cacheKey, err
 }
 
 func Collector(w http.ResponseWriter, r *http.Request) {
