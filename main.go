@@ -49,7 +49,7 @@ func main() {
 	flag.Parse()
 
 	if *Version != false {
-		fmt.Println("v0.5.7")
+		fmt.Println("v0.1.8")
 		return
 	}
 
@@ -181,7 +181,7 @@ func main() {
 	wsProxyHandler := WsProxyHandler(backend.Websocket)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/proxystatus", proxystatus)
+	mux.HandleFunc("/proxystatus", healthcheck.GetProxyStatus)
 	mux.HandleFunc("/endpointstatus", healthcheck.GetEndpointStatus)
 
 	if c.WsServerName != "" && len(backend.Websocket) > 0 {

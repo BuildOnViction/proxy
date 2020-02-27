@@ -32,6 +32,10 @@ type StateStore struct {
 
 var es *StateStore = &StateStore{state: make(map[string]EndpointState)}
 
+type ProxyStatus struct {
+	Status bool `json:"status"`
+}
+
 func Run(u *url.URL) (*url.URL, bool) {
 	var err error
 	var b EthBlockNumber
@@ -125,6 +129,30 @@ func GetEndpointStatus(w http.ResponseWriter, r *http.Request) {
 	endpoint := r.URL.Query().Get("u")
 	data, _ := json.Marshal(es.state[endpoint])
 	w.WriteHeader(http.StatusOK)
+	w.Write(data)
+	return
+}
+
+func GetProxyStatus(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	defer r.Body.Close()
+
+	status := ProxyStatus{
+		true,
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	for _, value := range es.state {
+		if value.Status == "NOK" {
+			status.Status = false
+			w.WriteHeader(http.StatusBadGateway)
+			break
+		}
+	}
+
+	data, _ := json.Marshal(status)
 	w.Write(data)
 	return
 }
