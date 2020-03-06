@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
-	"fmt"
 	log "github.com/inconshreveable/log15"
 	"github.com/tomochain/proxy/config"
 	"github.com/tomochain/proxy/utils/hexutil"
