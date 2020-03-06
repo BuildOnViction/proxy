@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	log "github.com/inconshreveable/log15"
 	"github.com/tomochain/proxy/config"
 	"github.com/tomochain/proxy/utils/hexutil"
@@ -17,6 +18,10 @@ import (
 
 type EthBlockNumber struct {
 	Result string
+}
+
+type RpcBlock struct {
+	Result map[string]interface{} `json:"result"`
 }
 
 type EndpointState struct {
@@ -39,7 +44,9 @@ type ProxyStatus struct {
 func Run(u *url.URL) (*url.URL, bool) {
 	var err error
 	var b EthBlockNumber
+	var block RpcBlock
 	var bn uint64
+	var timestamp uint64
 	var bd []byte
 	var req *http.Request
 	var resp *http.Response
@@ -89,19 +96,55 @@ func Run(u *url.URL) (*url.URL, bool) {
 		}
 	}
 
+	byt = []byte(`{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params":["latest",false],"id":1}`)
+	body = bytes.NewReader(byt)
+	req, _ = http.NewRequest("POST", u.String(), body)
+	req.Header.Set("Connection", "close")
+	req.Close = true
+	req.Header.Set("Content-Type", "application/json")
+
+	c = config.GetConfig()
+	if c.Headers != nil {
+		for key, value := range *c.Headers {
+			req.Header.Set(key, value)
+			if host := req.Header.Get("Host"); host != "" {
+				req.Host = host
+			}
+		}
+	}
+
+	resp, err = client.Do(req)
+	if err == nil {
+		defer resp.Body.Close()
+		defer req.Body.Close()
+		bd, err = ioutil.ReadAll(resp.Body)
+		if err == nil {
+			err = json.Unmarshal(bd, &block)
+		}
+		if err == nil {
+			timestamp, err = hexutil.DecodeUint64(block.Result["timestamp"].(string))
+		}
+	}
+
+	delta := uint64(time.Now().Unix()) - timestamp
+
 	// save state
 	es.Lock()
 	defer es.Unlock()
+	status := "OK"
+	count := 1
 	if bn == es.state[u.String()].BlockNumber {
-		c := es.state[u.String()].Count + 1
-		status := "OK"
-		if c > 10 {
+		count = es.state[u.String()].Count + 1
+		if count > 10 {
 			status = "NOK"
 		}
-		es.state[u.String()] = EndpointState{bn, c, status}
-	} else {
-		es.state[u.String()] = EndpointState{bn, 1, "OK"}
 	}
+
+	if delta > 120 {
+		status = "NOK"
+	}
+
+	es.state[u.String()] = EndpointState{bn, count, status}
 
 	if err != nil {
 		es.state[u.String()] = EndpointState{bn, 0, "NOK"}
