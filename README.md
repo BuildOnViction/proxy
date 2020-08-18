@@ -49,6 +49,12 @@ Enable websocket:
 
 Note: You should create your own certs, and update config file with the path to the files
 
+Healthcheck path:
+```
+/proxystatus
+```
+
+
 ## Test
 Start proxy:
 ```
