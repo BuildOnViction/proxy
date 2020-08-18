@@ -79,6 +79,11 @@ func Collector(w http.ResponseWriter, r *http.Request) {
 	}
 
 	url, method, cacheKey, _ := route(r)
+	if url == nil {
+		log.Error("No endpoint", "method", method)
+		w.WriteHeader(http.StatusBadGateway)
+		return
+	}
 
 	r.URL.Host = url.Host
 	r.URL.Scheme = url.Scheme
