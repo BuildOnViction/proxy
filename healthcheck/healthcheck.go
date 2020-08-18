@@ -184,14 +184,17 @@ func GetProxyStatus(w http.ResponseWriter, r *http.Request) {
 		true,
 	}
 
-	w.WriteHeader(http.StatusOK)
-
 	for _, value := range es.state {
 		if value.Status == "NOK" {
 			status.Status = false
-			w.WriteHeader(http.StatusBadGateway)
 			break
 		}
+	}
+
+	if status.Status {
+		w.WriteHeader(http.StatusOK)
+	} else {
+		w.WriteHeader(http.StatusBadGateway)
 	}
 
 	data, _ := json.Marshal(status)
