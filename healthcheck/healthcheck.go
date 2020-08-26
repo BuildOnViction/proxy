@@ -139,7 +139,7 @@ func Run(u *url.URL) (*url.URL, bool) {
 		}
 	}
 
-	if delta > 120 {
+	if delta > 200 {
 		status = "NOK"
 	}
 
@@ -150,9 +150,9 @@ func Run(u *url.URL) (*url.URL, bool) {
 	}
 
 	if err != nil || es.state[u.String()].Status == "NOK" {
-		log.Error("Healthcheck", "url", u.String(), "number", bn, "count", es.state[u.String()].Count, "status", "NOK", "err", err)
+		log.Error("Healthcheck", "url", u.String(), "number", bn, "count", es.state[u.String()].Count, "status", "NOK", "delta", delta, "err", err)
 	} else {
-		log.Info("Healthcheck", "url", u.String(), "number", bn, "count", es.state[u.String()].Count, "status", "OK")
+		log.Info("Healthcheck", "url", u.String(), "number", bn, "count", es.state[u.String()].Count, "status", "OK", "delta", delta)
 	}
 
 	if es.state[u.String()].Status == "NOK" {
