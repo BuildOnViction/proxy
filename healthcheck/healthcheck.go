@@ -134,7 +134,7 @@ func Run(u *url.URL) (*url.URL, bool) {
 	count := 1
 	if bn == es.state[u.String()].BlockNumber {
 		count = es.state[u.String()].Count + 1
-		if count > 10 {
+		if count > 30 {
 			status = "NOK"
 		}
 	}
