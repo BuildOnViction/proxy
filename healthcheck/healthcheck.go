@@ -139,7 +139,7 @@ func Run(u *url.URL) (*url.URL, bool) {
 		}
 	}
 
-	if delta > 300 {
+	if delta > 600 {
 		status = "NOK"
 	}
 
